@@ -14,7 +14,7 @@ const MOCK_TEMPLATES: PageTemplate[] = [
     id: '2',
     name: 'E-commerce Product Page',
     templateName: 'product-page-1',
-    image: '/placeholder.svg?height=400&width=600',
+    image: '/placeholder.svg?height=401&width=600',
   },
   {
     id: '3',
