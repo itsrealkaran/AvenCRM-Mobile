@@ -7,9 +7,7 @@ import { DashboardCard } from '../../components/DashboardCard';
 
 export default function Property() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-      <StatusBar style="auto" />
-      <ScrollView style={{ flex: 1, padding: 16 }}>
+      <ScrollView style={{ flex: 1, padding: 16, backgroundColor: '#FAFBFF' }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>Property Management</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
           <DashboardCard
@@ -29,7 +27,6 @@ export default function Property() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
   );
 }
 

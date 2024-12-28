@@ -47,7 +47,7 @@ export default function Sidebar(props: DrawerContentComponentProps) {
         >
           <View style={styles.logoWrapper}>
             <Ionicons name="layers-outline" size={24} color="#5932ea" />
-            <Text style={styles.linkTitle}>Dashboard</Text>
+            <Text style={styles.linkTitle}>AvenCRM</Text>
             <Text style={styles.linkVersion}>v.01</Text>
           </View>
         </TouchableOpacity>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   menuText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#9197B3',
     flex: 1,
   },

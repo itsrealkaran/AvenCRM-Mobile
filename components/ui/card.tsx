@@ -16,11 +16,11 @@ export function Card({ children, style, ...props }: CardProps) {
           shadowColor: "#000",
           shadowOffset: {
             width: 0,
-            height: 2,
+            height: 0,
           },
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
-          elevation: 5,
+          elevation: 3,
         },
         style
       ]}
