@@ -32,7 +32,7 @@ export default function Sidebar(props: DrawerContentComponentProps) {
     if (itemName === 'Dashboard') {
       return pathname === '/(dashboard)' || pathname === '/(dashboard)/index' || pathname === '/';
     }
-    return pathname.includes(itemName.toLowerCase());
+    return pathname.includes(itemName.toLowerCase().replace(/\s+/g, '-'));
   };
 
   return (

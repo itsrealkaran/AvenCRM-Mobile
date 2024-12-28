@@ -92,17 +92,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   content: {
-    padding: 8,
+    padding: 6,
   },
   address: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 2,
-    height: 32, // Fixed height for 2 lines
+    height: 32,
   },
   price: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#5932EA',
     marginBottom: 4,
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   specText: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#666',
   },
   footer: {
@@ -136,22 +135,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   agentAvatar: {
-    width: 20,
-    height: 20,
+    width: 30,
+    height: 30,
     borderRadius: 10,
     backgroundColor: '#f0f0f0',
   },
   agentName: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#333',
     flex: 1,
   },
   actions: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
   actionButton: {
-    padding: 2,
+    padding: 4,
+    borderRadius: 5,
+    backgroundColor: '#f0f0f0',
   },
 });
 
