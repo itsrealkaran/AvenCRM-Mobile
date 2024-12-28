@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     padding: 18,
     paddingBottom: 12,
     backgroundColor: 'white',
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomColor: '#eee',
     zIndex: 1000,
     ...Platform.select({

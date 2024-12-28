@@ -4,7 +4,7 @@ import { MetricCard } from '../../components/ui/metric-card';
 import { PerformanceChart } from '../../components/ui/performance-chart';
 import { TaskList } from '../../components/ui/task-list';
 
-// Mock data (in the future, this could be fetched from an API)
+
 const dashboardData = {
   metrics: [
     { id: '1', title: "Active Leads", value: "12", subtitle: "4 require follow-up" },
@@ -37,10 +37,11 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function Dashboard() {
   return (
-    <ScrollView style={styles.scrollView}>
+    <View style={styles.scrollView}>
       <View style={styles.header}>
         <Text style={styles.title}>Welcome, Manpreet!</Text>
       </View>
+      <ScrollView>
       <View style={styles.metricsContainer}>
         {dashboardData.metrics.map((metric, index) => (
           <View key={metric.id} style={styles.metricCardWrapper}>
@@ -65,6 +66,7 @@ export default function Dashboard() {
         />
       </View>
     </ScrollView>
+    </View>
   );
 }
 
@@ -88,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   metricCardWrapper: {
-    width: (screenWidth - 48) / 2, // 48 = 16 * 2 (horizontal padding) + 16 (gap between cards)
+    width: (screenWidth - 48) / 2,
     marginBottom: 16,
   },
   content: {
