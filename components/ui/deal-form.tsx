@@ -6,7 +6,7 @@ import { Select } from './select';
 import { CountryCodeDropdown } from './country-code-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import type { Deal, DealStatus, NoteEntry } from '@/types/deal';
+import type { Deal, DealRole, DealStatus, NoteEntry } from '@/types/deal';
 
 interface DealFormProps {
   initialData?: Partial<Deal>;
@@ -16,6 +16,7 @@ interface DealFormProps {
 }
 
 const STATUS_OPTIONS: DealStatus[] = ['New', 'Discovery', 'Proposal', 'Negotiation', 'Won'];
+const DEAL_ROLE_OPTIONS = ['Rent', 'Sale', 'Buy'];
 
 export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFormProps) {
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
     countryCode: initialData?.phone?.split(' ')[0] || '+1',
     phone: initialData?.phone?.split(' ')[1] || '',
     status: initialData?.status || 'New' as DealStatus,
+    dealRole: initialData?.dealRole || 'Sale',
     amount: initialData?.amount?.toString() || '',
     propertyType: initialData?.propertyType || '',
     expectedCloseDate: initialData?.expectedCloseDate ? new Date(initialData.expectedCloseDate) : new Date(),
@@ -53,7 +55,7 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
 
   return (
     <Card style={styles.card}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView>
         <View style={styles.field}>
           <Text style={styles.label}>Name</Text>
           <TextInput
@@ -111,6 +113,18 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
             value={formData.propertyType}
             onChangeText={(text) => setFormData((prev) => ({ ...prev, propertyType: text }))}
             placeholder="Enter property type"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Deal Role</Text>
+          <Select
+            value={formData.dealRole}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, dealRole: value as DealRole }))}
+            options={DEAL_ROLE_OPTIONS.map((role) => ({
+              label: role,
+              value: role,
+            }))}
           />
         </View>
 
@@ -183,9 +197,6 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
 const styles = StyleSheet.create({
   card: {
     padding: 16,
-  },
-  scrollView: {
-    maxHeight: '80%',
   },
   field: {
     marginBottom: 16,

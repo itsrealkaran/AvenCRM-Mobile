@@ -1,4 +1,5 @@
 export type DealStatus = 'New' | 'Discovery' | 'Proposal' | 'Negotiation' | 'Won';
+export type DealRole = 'Sale' | 'Buy' | 'Rent';
 
 export interface NoteEntry {
   id: string;
@@ -12,6 +13,7 @@ export interface Deal {
   email: string;
   phone: string;
   status: DealStatus;
+  dealRole: DealRole;
   amount: number;
   propertyType: string;
   expectedCloseDate: string;

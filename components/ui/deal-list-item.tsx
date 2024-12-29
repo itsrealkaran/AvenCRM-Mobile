@@ -82,6 +82,10 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
           <Text style={styles.detailText}>{deal.propertyType}</Text>
         </View>
         <View style={styles.detailItem}>
+          <Ionicons name="pricetag-outline" size={16} color="#666" />
+          <Text style={styles.detailText}>{deal.dealRole}</Text>
+        </View>
+        <View style={styles.detailItem}>
           <Ionicons name="calendar-outline" size={16} color="#666" />
           <Text style={styles.detailText}>{new Date(deal.expectedCloseDate).toLocaleDateString()}</Text>
         </View>

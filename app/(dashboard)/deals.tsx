@@ -47,9 +47,10 @@ const MOCK_DEALS: Deal[] = [
     id: '1',
     name: 'John Doe',
     email: 'john@example.com',
-    phone: '+1 234 567 890',
+    phone: '+1 234567890',
     status: 'New',
     amount: 500000,
+    dealRole: 'Sale',
     propertyType: 'Residential',
     expectedCloseDate: '2024-03-15T00:00:00Z',
     notes: [
@@ -148,7 +149,7 @@ export default function Deals() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Deals</Text>
         <Button onPress={() => setShowAddModal(true)}>Add New Deal</Button>
@@ -196,7 +197,7 @@ export default function Deals() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   title: {
     fontSize: 24,
@@ -237,6 +238,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     overflow: 'hidden',
+    maxHeight: '80%',
   },
 });
 

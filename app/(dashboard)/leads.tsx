@@ -54,8 +54,9 @@ const MOCK_LEADS: Lead[] = [
     id: '1',
     name: 'John Doe',
     email: 'john@example.com',
-    phone: '+1 234 567 890',
+    phone: '+49 234567890',
     status: 'New',
+    dealRole: 'Buy',
     notes: [
       { id: '1', content: 'Initial contact made', timestamp: '2024-01-15T10:00:00Z' },
     ],
@@ -169,7 +170,7 @@ export default function Leads() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Leads</Text>
         <Button onPress={() => setShowAddModal(true)}>Add New Lead</Button>
@@ -241,7 +242,7 @@ export default function Leads() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   title: {
     fontSize: 24,
@@ -282,6 +283,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     overflow: 'hidden',
+    maxHeight: '80%',
   },
 });
 

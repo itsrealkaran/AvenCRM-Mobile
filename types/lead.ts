@@ -1,4 +1,5 @@
 export type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost' | 'Won';
+export type DealRole = 'Sale' | 'Buy' | 'Rent';
 
 export interface NoteEntry {
   id: string;
@@ -11,6 +12,7 @@ export interface Lead {
   name: string;
   email: string;
   phone: string;
+  dealRole: DealRole;
   status: LeadStatus;
   notes: NoteEntry[];
   createdAt: string;

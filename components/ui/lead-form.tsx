@@ -4,7 +4,7 @@ import { Button } from './button';
 import { Card } from './card';
 import { Select } from './select';
 import { CountryCodeDropdown } from './country-code-dropdown';
-import type { Lead, LeadStatus, NoteEntry } from '@/types/lead';
+import type { DealRole, Lead, LeadStatus, NoteEntry } from '@/types/lead';
 
 interface LeadFormProps {
   initialData?: Partial<Lead>;
@@ -14,6 +14,7 @@ interface LeadFormProps {
 }
 
 const STATUS_OPTIONS: LeadStatus[] = ['New', 'Contacted', 'Qualified', 'Lost', 'Won'];
+const DEAL_ROLE_OPTIONS = ['Rent', 'Sale', 'Buy'];
 
 export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFormProps) {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
     countryCode: initialData?.phone?.split(' ')[0] || '+1',
     phone: initialData?.phone?.split(' ')[1] || '',
     status: initialData?.status || 'New' as LeadStatus,
+    dealRole: initialData?.dealRole || 'Sale',
     notes: initialData?.notes || [],
   });
   const [newNote, setNewNote] = useState('');
@@ -87,6 +89,18 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             options={STATUS_OPTIONS.map((status) => ({
               label: status,
               value: status,
+            }))}
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Deal Role</Text>
+          <Select
+            value={formData.dealRole}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, dealRole: value as DealRole }))}
+            options={DEAL_ROLE_OPTIONS.map((role) => ({
+              label: role,
+              value: role,
             }))}
           />
         </View>
