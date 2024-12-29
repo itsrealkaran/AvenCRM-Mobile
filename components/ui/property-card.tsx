@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Share, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Share} from 'react-native';
 import { Card } from './card';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Property } from '@/types/property';
 
 interface PropertyCardProps {
@@ -45,11 +45,11 @@ export function PropertyCard({ property, onFavorite, isFavorite = false }: Prope
             <Text style={styles.specText}>{property.bedrooms}</Text>
           </View>
           <View style={styles.specItem}>
-            <Ionicons name="water-outline" size={14} color="#666" />
+            <MaterialCommunityIcons name="bathtub-outline" size={14} color="#666" />
             <Text style={styles.specText}>{property.bathrooms}</Text>
           </View>
           <View style={styles.specItem}>
-            <Ionicons name="square-outline" size={14} color="#666" />
+            <Ionicons name="expand-outline" size={14} color="#666" />
             <Text style={styles.specText}>{property.squareFeet.toLocaleString()} ft²</Text>
           </View>
         </View>
@@ -109,7 +109,8 @@ const styles = StyleSheet.create({
   specs: {
     flexDirection: 'row',
     marginBottom: 4,
-    gap: 8,
+    gap: 12,
+    paddingBottom: 8,
   },
   specItem: {
     flexDirection: 'row',

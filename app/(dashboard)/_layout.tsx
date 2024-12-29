@@ -34,7 +34,6 @@ export default function DashboardLayout() {
           <Drawer.Screen name="transaction" options={{ title: 'Transaction' }} />
           <Drawer.Screen name="monitoring" options={{ title: 'Monitoring' }} />
           <Drawer.Screen name="calendar" options={{ title: 'Calendar' }} />
-          <Drawer.Screen name="email" options={{ title: 'Email' }} />
           <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
         </Drawer>
         <StatusBar style="dark" backgroundColor="#fff" />

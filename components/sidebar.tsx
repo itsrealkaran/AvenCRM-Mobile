@@ -20,7 +20,6 @@ const MENU_ITEMS: MenuItem[] = [
   { name: 'Transaction', icon: 'card-outline' },
   { name: 'Monitoring', icon: 'analytics-outline' },
   { name: 'Calendar', icon: 'calendar-outline' },
-  { name: 'Email', icon: 'mail-outline' },
 ];
 
 export default function Sidebar(props: DrawerContentComponentProps) {

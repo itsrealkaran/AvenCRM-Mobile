@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   dropdown: {
     position: 'absolute',
     right: 10,
-    width: 140,
+    width: 150,
     backgroundColor: 'white',
     borderRadius: 8,
     borderWidth: 1,

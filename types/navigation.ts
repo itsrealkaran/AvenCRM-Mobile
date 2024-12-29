@@ -12,7 +12,6 @@ export type DashboardTabParamList = {
   Transaction: undefined;
   Monitoring: undefined;
   Calendar: undefined;
-  Email: undefined;
   Settings: undefined;
 };
 
