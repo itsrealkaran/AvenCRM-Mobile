@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { Svg, G, Text as SvgText, Line, Rect } from 'react-native-svg';
 

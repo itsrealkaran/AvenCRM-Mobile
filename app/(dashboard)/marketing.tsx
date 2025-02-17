@@ -73,7 +73,6 @@ export default function Marketing() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Marketing</Text>
-        <Text style={styles.subtitle}>Choose a template to start building your page</Text>
       </View>
       <ScrollView style={styles.content}>
         {MOCK_TEMPLATES.map((template) => (
@@ -101,11 +100,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
   },
   content: {
     padding: 2,

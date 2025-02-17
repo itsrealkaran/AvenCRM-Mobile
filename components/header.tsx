@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, Image } from 'react
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../contexts/auth-context';
+import { useAuth } from '@/contexts/auth-context';
 import Svg, { Path } from "react-native-svg"
 
 interface HeaderProps {
@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export default function Header({ toggleDrawer }: HeaderProps) {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [showDropdown, setShowDropdown] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -41,14 +41,23 @@ export default function Header({ toggleDrawer }: HeaderProps) {
         style={styles.profileContainer}
       >
         <View style={styles.avatar}>
-          <Image 
-            source={{ uri: '/placeholder.svg?height=40&width=40' }}
-            style={styles.avatar}
-          />
+          {user?.name ? (
+            <View style={[styles.avatar, { backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={{ color: '#333', fontSize: 18, fontWeight: '400' }}>
+                {user.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          ) : (
+            <Image 
+              source={{ uri: '/placeholder.svg?height=40&width=40' }}
+              style={styles.avatar}
+            />
+          )}
         </View>
         <View>
-          <Text style={styles.profileTitle}>Manpreet</Text>
-          <Text style={styles.profileSubtitle}>Team Leader</Text>
+          <Text style={styles.profileTitle}>{user?.name || 'User'}</Text>
+          <Text style={styles.profileSubtitle}>{user?.role === 'TEAM_LEADER' ? 'Team Leader' : 
+           user?.role === 'AGENT' ? 'Agent' : 'Guest'}</Text>
         </View>
         <Ionicons 
           name={showDropdown ? "caret-up-outline" : "caret-down-outline"} 

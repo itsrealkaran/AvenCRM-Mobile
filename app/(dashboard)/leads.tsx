@@ -6,6 +6,7 @@ import { LeadListItem } from '@/components/ui/lead-list-item';
 import { LeadForm } from '@/components/ui/lead-form';
 import { LeadTransferForm } from '@/components/ui/lead-transfer-form';
 import type { Lead, LeadStatus } from '@/types/lead';
+import { AntDesign } from '@expo/vector-icons';
 
 // API functions (replace with actual API calls)
 const api = {
@@ -173,7 +174,12 @@ export default function Leads() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Leads</Text>
-        <Button onPress={() => setShowAddModal(true)}>Add New Lead</Button>
+        <Button style={{backgroundColor: '#5932EA11'}} variant='outline' size='md' onPress={() => setShowAddModal(true)}>
+          <View style={styles.addButton}>
+            <AntDesign name="adduser" size={20} color="#5932EA" />
+            <Text style={styles.buttonText}>Add Lead</Text>
+          </View> 
+        </Button>
       </View>
 
       <TextInput
@@ -284,6 +290,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     maxHeight: '80%',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#5932EA',
+    fontWeight: '500',
+    marginLeft: 6,
+    fontSize: 16,
   },
 });
 

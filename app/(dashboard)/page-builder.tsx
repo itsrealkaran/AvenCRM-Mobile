@@ -73,7 +73,6 @@ export default function PageBuilder() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Page Builder</Text>
-        <Text style={styles.subtitle}>Choose a template to start building your page</Text>
       </View>
       <ScrollView style={styles.content}>
         {MOCK_TEMPLATES.map((template) => (
@@ -102,14 +101,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
-  },
   content: {
     padding: 2,
-    paddingHorizontal: 26,
+    paddingHorizontal: 20,
     gap: 12,
   },
 });

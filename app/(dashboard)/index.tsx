@@ -1,16 +1,44 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
-import { MetricCard } from '../../components/ui/metric-card';
-import { PerformanceChart } from '../../components/ui/performance-chart';
-import { TaskList } from '../../components/ui/task-list';
-
+import { MetricCard } from '@/components/ui/metric-card';
+import { PerformanceChart } from '@/components/ui/performance-chart';
+import { TaskList } from '@/components/ui/task-list';
+import { useAuth } from '@/contexts/auth-context';
 
 const dashboardData = {
   metrics: [
-    { id: '1', title: "Active Leads", value: "12", subtitle: "4 require follow-up" },
-    { id: '2', title: "Deals Closed", value: "4", subtitle: "This month" },
-    { id: '3', title: "Commission", value: "$12,234", subtitle: "+8.2% from last month", changeDirection: "up" as const },
-    { id: '4', title: "Response Rate", value: "95%", subtitle: "+4% from last month", changeDirection: "up" as const },
+    { 
+      id: '1', 
+      title: "My Leads", 
+      value: "4", 
+      subtitle: "Active leads assigned",
+      icon: 'people-outline' as const,
+      color: '#4318FF'
+    },
+    { 
+      id: '2', 
+      title: "My Deals", 
+      value: "3", 
+      subtitle: "Deals in progress",
+      icon: 'document-text-outline' as const,
+      color: '#05CD99'
+    },
+    { 
+      id: '3', 
+      title: "Pending Tasks", 
+      value: "2", 
+      subtitle: "Tasks to complete",
+      icon: 'checkmark-circle-outline' as const,
+      color: '#6C5DD3'
+    },
+    { 
+      id: '4', 
+      title: "My Revenue", 
+      value: "$0", 
+      subtitle: "Total revenue generated",
+      icon: 'cash-outline' as const,
+      color: '#FFB547'
+    },
   ],
   performanceData: [
     { month: 'Jan', leads: 4, deals: 2 },
@@ -36,36 +64,39 @@ const dashboardData = {
 const screenWidth = Dimensions.get('window').width;
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  
   return (
     <View style={styles.scrollView}>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome, Manpreet!</Text>
+        <Text style={styles.title}>Welcome, {user?.name || 'User'}!</Text>
       </View>
       <ScrollView>
-      <View style={styles.metricsContainer}>
-        {dashboardData.metrics.map((metric, index) => (
-          <View key={metric.id} style={styles.metricCardWrapper}>
-            <MetricCard
-              title={metric.title}
-              value={metric.value}
-              subtitle={metric.subtitle}
-              changeDirection={metric.changeDirection}
-            />
-          </View>
-        ))}
-      </View>
+        <View style={styles.metricsContainer}>
+          {dashboardData.metrics.map((metric) => (
+            <View key={metric.id} style={styles.metricCardWrapper}>
+              <MetricCard
+                title={metric.title}
+                value={metric.value}
+                subtitle={metric.subtitle}
+                icon={metric.icon}
+                color={metric.color}
+              />
+            </View>
+          ))}
+        </View>
 
-      <View style={styles.content}>
-        <PerformanceChart
-          data={dashboardData.performanceData}
-        />
-        <TaskList
-          title="Upcoming Tasks"
-          subtitle="Your scheduled activities"
-          tasks={dashboardData.upcomingTasks}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.content}>
+          <PerformanceChart
+            data={dashboardData.performanceData}
+          />
+          <TaskList
+            title="Upcoming Tasks"
+            subtitle="Your scheduled activities"
+            tasks={dashboardData.upcomingTasks}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -81,7 +112,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#5932EA',
   },
   metricsContainer: {
     flexDirection: 'row',

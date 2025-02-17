@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { DealListItem } from '@/components/ui/deal-list-item';
 import { DealForm } from '@/components/ui/deal-form';
 import type { Deal, DealStatus } from '@/types/deal';
+import { AntDesign } from '@expo/vector-icons';
 
 // API functions (replace with actual API calls)
 const api = {
@@ -152,7 +152,12 @@ export default function Deals() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Deals</Text>
-        <Button onPress={() => setShowAddModal(true)}>Add New Deal</Button>
+        <Button style={{backgroundColor: '#5932EA11'}} variant='outline' size='md' onPress={() => setShowAddModal(true)}>
+          <View style={styles.addButton}>
+            <AntDesign name="adduser" size={20} color="#5932EA" />
+            <Text style={styles.buttonText}>Add Deal</Text>
+          </View> 
+        </Button>
       </View>
 
       <TextInput
@@ -239,6 +244,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     maxHeight: '80%',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#5932EA',
+    fontWeight: '500',
+    marginLeft: 6,
+    fontSize: 16,
   },
 });
 

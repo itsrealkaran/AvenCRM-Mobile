@@ -162,7 +162,6 @@ export default function Property() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Properties</Text>
-        <Text style={styles.subtitle}>Browse available properties</Text>
       </View>
       <ScrollView style={styles.content}>
         {MOCK_PROPERTIES.map((property) => (
@@ -190,11 +189,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
   },
   content: {
     padding: 2,
