@@ -1,6 +1,8 @@
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
+const AUTH_TOKEN_KEY = 'auth_token';
 
 interface LoginResponse {
   token: string;
@@ -27,18 +29,40 @@ interface DashboardData {
 class ApiClient {
   private token: string | null = null;
 
-  setToken(token: string) {
-    this.token = token;
+  async initialize() {
+    try {
+      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        this.token = token;
+      }
+    } catch (error) {
+      console.error('Error initializing API client:', error);
+    }
   }
 
-  clearToken() {
+  async getStoredToken() {
+    if (!this.token) {
+      this.token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    }
+    return this.token;
+  }
+
+  async setToken(token: string) {
+    this.token = token;
+    await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
+
+  async clearToken() {
     this.token = null;
+    await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
   }
 
   private async fetch(endpoint: string, options: RequestInit = {}) {
+    const token = await this.getStoredToken();
+    
     const headers = {
       'Content-Type': 'application/json',
-      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     };
 
@@ -46,6 +70,11 @@ class ApiClient {
       ...options,
       headers,
     });
+
+    if (response.status === 401) {
+      await this.clearToken();
+      throw new Error('Authentication expired');
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -62,7 +91,7 @@ class ApiClient {
     });
     
     if (response.token) {
-      this.setToken(response.token);
+      await this.setToken(response.token);
     }
     
     return response;
@@ -73,13 +102,13 @@ class ApiClient {
   }
 
   async getAgentDashboard(): Promise<DashboardData> {
-    if (!this.token) {
-      throw new Error('Authentication required');
-    }
     return this.fetch('/api/dashboard/agent');      
   }
 
   // Add more API methods as needed for other endpoints
 }
 
-export const api = new ApiClient(); 
+export const api = new ApiClient();
+
+// Initialize the API client when the app starts
+api.initialize().catch(console.error); 

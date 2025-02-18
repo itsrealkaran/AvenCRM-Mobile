@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, ScrollView, Text, StyleSheet } from 'react-native';
 import { PropertyCard } from '@/components/ui/property-card';
 import type { Property } from '@/types/property';
@@ -6,158 +6,77 @@ import type { Property } from '@/types/property';
 // This would normally come from an API
 const MOCK_PROPERTIES: Property[] = [
   {
-    id: '1',
-    address: '92 ALLIUM PLACE',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 590693,
-    bedrooms: 4,
-    bathrooms: 4,
-    squareFeet: 2096.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '1',
-      name: 'Jenny Wilson',
-      avatar: '/placeholder.svg?height=64&width=64',
+    id: "cm729b41a000bqqb4ypgf8jzp",
+    slug: "yep5ivt6m729b3vqmak9eesv", 
+    isVerified: true,
+    cardDetails: {
+      id: "1739406796097",
+      beds: 4,
+      sqft: 2280,
+      baths: 3,
+      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_30.jpg",
+      price: 799000,
+      title: "316 Savanna Way",
+      address: "316 Savanna Way, Calgary, T3J0Y6",
+      parking: 4,
+      isVerified: false
     },
+    createdAt: "2025-02-12T18:40:53.607Z",
+    createdBy: {
+      id: "cm6s6kjkr00rhqqt57vzon2br",
+      name: "Karan Singh", 
+      email: "agent@avencrm.com"
+    }
   },
   {
-    id: '2',
-    address: '28 WESTGATE AVE',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 475000,
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1850.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '2',
-      name: 'Robert Johnson',
-      avatar: '/placeholder.svg?height=64&width=64',
+    id: "cm729b41a000bqqb4ypgf8jz2",
+    slug: "yep5ivt6m729b3vqmak9ee2v",
+    isVerified: true,
+    cardDetails: {
+      id: "1739406796098",
+      beds: 3,
+      sqft: 1850,
+      baths: 2,
+      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_31.jpg",
+      price: 475000,
+      title: "28 Westgate Ave",
+      address: "28 Westgate Ave, Calgary, T3J0Y7",
+      parking: 2,
+      isVerified: true
     },
+    createdAt: "2025-02-12T18:41:53.607Z", 
+    createdBy: {
+      id: "cm6s6kjkr00rhqqt57vzon2br",
+      name: "Karan Singh",
+      email: "agent@avencrm.com"
+    }
   },
   {
-    id: '3',
-    address: '135 LAKE VIEW DR',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 725000,
-    bedrooms: 5,
-    bathrooms: 3,
-    squareFeet: 2500.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '1',
-      name: 'Jenny Wilson',
-      avatar: '/placeholder.svg?height=64&width=64',
+    id: "cm729b41a000bqqb4ypgf8jz3",
+    slug: "yep5ivt6m729b3vqmak9ee3v",
+    isVerified: false,
+    cardDetails: {
+      id: "1739406796099", 
+      beds: 5,
+      sqft: 2500,
+      baths: 3,
+      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_32.jpg",
+      price: 725000,
+      title: "135 Lake View Dr",
+      address: "135 Lake View Dr, Calgary, T3J0Y8",
+      parking: 3,
+      isVerified: false
     },
-  },
-  {
-    id: '4',
-    address: '47 PALM SPRINGS',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 550000,
-    bedrooms: 4,
-    bathrooms: 3,
-    squareFeet: 2200.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '2',
-      name: 'Robert Johnson',
-      avatar: '/placeholder.svg?height=64&width=64',
-    },
-  },
-  {
-    id: '5',
-    address: '92 ALLIUM PLACE',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 590693,
-    bedrooms: 4,
-    bathrooms: 4,
-    squareFeet: 2096.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '1',
-      name: 'Jenny Wilson',
-      avatar: '/placeholder.svg?height=64&width=64',
-    },
-  },
-  {
-    id: '6',
-    address: '28 WESTGATE AVE',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 475000,
-    bedrooms: 3,
-    bathrooms: 2,
-    squareFeet: 1850.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '2',
-      name: 'Robert Johnson',
-      avatar: '/placeholder.svg?height=64&width=64',
-    },
-  },
-  {
-    id: '7',
-    address: '135 LAKE VIEW DR',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 725000,
-    bedrooms: 5,
-    bathrooms: 3,
-    squareFeet: 2500.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '1',
-      name: 'Jenny Wilson',
-      avatar: '/placeholder.svg?height=64&width=64',
-    },
-  },
-  {
-    id: '8',
-    address: '47 PALM SPRINGS',
-    city: 'ORLANDO',
-    state: 'FL',
-    zipCode: '32827',
-    price: 550000,
-    bedrooms: 4,
-    bathrooms: 3,
-    squareFeet: 2200.00,
-    image: '/placeholder.svg?height=400&width=600',
-    agent: {
-      id: '2',
-      name: 'Robert Johnson',
-      avatar: '/placeholder.svg?height=64&width=64',
-    },
-  },
+    createdAt: "2025-02-12T18:42:53.607Z",
+    createdBy: {
+      id: "cm6s6kjkr00rhqqt57vzon2br", 
+      name: "Karan Singh",
+      email: "agent@avencrm.com"
+    }
+  }
 ];
 
 export default function Property() {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-
-  const toggleFavorite = (propertyId: string) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(propertyId)) {
-        newFavorites.delete(propertyId);
-      } else {
-        newFavorites.add(propertyId);
-      }
-      return newFavorites;
-    });
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -168,8 +87,6 @@ export default function Property() {
           <PropertyCard
             key={property.id}
             property={property}
-            isFavorite={favorites.has(property.id)}
-            onFavorite={() => toggleFavorite(property.id)}
           />
         ))}
       </ScrollView>
@@ -196,4 +113,3 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
-

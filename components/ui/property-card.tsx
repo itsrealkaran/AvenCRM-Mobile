@@ -3,19 +3,23 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Share} from 'react-nat
 import { Card } from './card';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Property } from '@/types/property';
+import { useAuth } from '@/contexts/auth-context';
 
 interface PropertyCardProps {
   property: Property;
-  onFavorite?: () => void;
-  isFavorite?: boolean;
 }
 
-export function PropertyCard({ property, onFavorite, isFavorite = false }: PropertyCardProps) {
+export function PropertyCard({ property }: PropertyCardProps) {
+  const { user } = useAuth();
   const handleShare = async () => {
     try {
+      const propertyUrl = `https://crm.avencrm.com/properties/${property.id}?agentId=${user?.id || property.createdBy.id}`;
+      const message = `Check out this amazing property!\n\n${property.cardDetails.title}\n${property.cardDetails.address}\n\nPrice: $${property.cardDetails.price.toLocaleString()}\n• ${property.cardDetails.beds} beds\n• ${property.cardDetails.baths} baths\n• ${property.cardDetails.parking} parking\n• ${property.cardDetails.sqft.toLocaleString()} sq ft\n\nListed by: ${property.createdBy.name}\n\nView more details at: ${propertyUrl}`;
+      
       await Share.share({
-        message: `Check out this property: ${property.address}, ${property.city} ${property.state} ${property.zipCode} - $${property.price.toLocaleString()}`,
-        url: property.image, // Note: This will only work on iOS
+        message,
+        url: property.cardDetails.image,
+        title: property.cardDetails.title,
       });
     } catch (error) {
       console.error(error);
@@ -29,49 +33,43 @@ export function PropertyCard({ property, onFavorite, isFavorite = false }: Prope
   return (
     <Card style={styles.card}>
       <Image
-        source={{ uri: property.image }}
+        source={{ uri: property.cardDetails.image }}
         style={styles.image}
         resizeMode="cover"
       />
       <View style={styles.content}>
         <Text style={styles.address} numberOfLines={3}>
-          {property.address}, {property.city} {property.state} {property.zipCode}
+          {property.cardDetails.address}
         </Text>
-        <Text style={styles.price}>{formatPrice(property.price)}</Text>
+        <Text style={styles.price}>{formatPrice(property.cardDetails.price)}</Text>
         
         <View style={styles.specs}>
           <View style={styles.specItem}>
             <Ionicons name="bed-outline" size={14} color="#666" />
-            <Text style={styles.specText}>{property.bedrooms}</Text>
+            <Text style={styles.specText}>{property.cardDetails.beds}</Text>
           </View>
           <View style={styles.specItem}>
             <MaterialCommunityIcons name="bathtub-outline" size={14} color="#666" />
-            <Text style={styles.specText}>{property.bathrooms}</Text>
+            <Text style={styles.specText}>{property.cardDetails.baths}</Text>
+          </View>
+          <View style={styles.specItem}>
+            <MaterialCommunityIcons name="car" size={14} color="#666" />
+            <Text style={styles.specText}>{property.cardDetails.parking}</Text>
           </View>
           <View style={styles.specItem}>
             <Ionicons name="expand-outline" size={14} color="#666" />
-            <Text style={styles.specText}>{property.squareFeet.toLocaleString()} ft²</Text>
+            <Text style={styles.specText}>{property.cardDetails.sqft.toLocaleString()} ft²</Text>
           </View>
         </View>
 
         <View style={styles.footer}>
           <View style={styles.agent}>
-            <Image
-              source={{ uri: property.agent.avatar }}
-              style={styles.agentAvatar}
-            />
-            <Text style={styles.agentName} numberOfLines={1}>{property.agent.name}</Text>
+            <View style={styles.agentAvatar} />
+            <Text style={styles.agentName} numberOfLines={1}>{property.createdBy.name}</Text>
           </View>
           <View style={styles.actions}>
             <TouchableOpacity onPress={handleShare} style={styles.actionButton}>
               <Ionicons name="share-social-outline" size={18} color="#666" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onFavorite} style={styles.actionButton}>
-              <Ionicons 
-                name={isFavorite ? "heart" : "heart-outline"} 
-                size={18} 
-                color={isFavorite ? "#FF4B4B" : "#666"} 
-              />
             </TouchableOpacity>
           </View>
         </View>
@@ -156,4 +154,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
 });
-
