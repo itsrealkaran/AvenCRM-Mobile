@@ -13,6 +13,17 @@ interface LoginResponse {
   };
 }
 
+interface DashboardData {
+  totalLeads: number;
+  totalDeals: number;
+  pendingTasks: number;
+  revenue: number;
+  performanceData: Array<{
+    month: string;
+    deals: number;
+  }>;
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -59,6 +70,13 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.fetch('/auth/me');
+  }
+
+  async getAgentDashboard(): Promise<DashboardData> {
+    if (!this.token) {
+      throw new Error('Authentication required');
+    }
+    return this.fetch('/api/dashboard/agent');      
   }
 
   // Add more API methods as needed for other endpoints
