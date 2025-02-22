@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PropertyResponse } from '@/types/property';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://backend.avencrm.com';
@@ -15,19 +16,6 @@ interface LoginResponse {
     role: 'AGENT' | 'TEAM_LEADER';
     companyId: string | null;
   };
-}
-
-interface Property {
-  id: string;
-  title: string;
-  description?: string;
-  price?: number;
-  location?: string;
-  propertyType?: string;
-  status?: 'AVAILABLE' | 'SOLD' | 'RENTED' | 'PENDING';
-  images?: string[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 class ApiClient {
@@ -119,9 +107,9 @@ class ApiClient {
   }
 
   // Property endpoints
-  async getProperties(): Promise<Property[]> {
+  async getProperties(): Promise<PropertyResponse> {
     try {
-      const response = await this.api.get('/api/property');
+      const response = await this.api.get('/property');
       console.log('[API] Get properties response:', response.data);
       return response.data;
     } catch (error) {

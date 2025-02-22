@@ -21,3 +21,8 @@ export interface Property {
     email: string;
   };
 }
+
+export interface PropertyResponse {
+  allProperty: Property[];
+  myProperty: Property[];
+}

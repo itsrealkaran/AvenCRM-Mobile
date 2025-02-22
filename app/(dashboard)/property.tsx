@@ -1,94 +1,91 @@
-import React from 'react';
-import { View, ScrollView, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { PropertyCard } from '@/components/ui/property-card';
 import type { Property } from '@/types/property';
-
-// This would normally come from an API
-const MOCK_PROPERTIES: Property[] = [
-  {
-    id: "cm729b41a000bqqb4ypgf8jzp",
-    slug: "yep5ivt6m729b3vqmak9eesv", 
-    isVerified: true,
-    cardDetails: {
-      id: "1739406796097",
-      beds: 4,
-      sqft: 2280,
-      baths: 3,
-      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_30.jpg",
-      price: 799000,
-      title: "316 Savanna Way",
-      address: "316 Savanna Way, Calgary, T3J0Y6",
-      parking: 4,
-      isVerified: false
-    },
-    createdAt: "2025-02-12T18:40:53.607Z",
-    createdBy: {
-      id: "cm6s6kjkr00rhqqt57vzon2br",
-      name: "Karan Singh", 
-      email: "agent@avencrm.com"
-    }
-  },
-  {
-    id: "cm729b41a000bqqb4ypgf8jz2",
-    slug: "yep5ivt6m729b3vqmak9ee2v",
-    isVerified: true,
-    cardDetails: {
-      id: "1739406796098",
-      beds: 3,
-      sqft: 1850,
-      baths: 2,
-      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_31.jpg",
-      price: 475000,
-      title: "28 Westgate Ave",
-      address: "28 Westgate Ave, Calgary, T3J0Y7",
-      parking: 2,
-      isVerified: true
-    },
-    createdAt: "2025-02-12T18:41:53.607Z", 
-    createdBy: {
-      id: "cm6s6kjkr00rhqqt57vzon2br",
-      name: "Karan Singh",
-      email: "agent@avencrm.com"
-    }
-  },
-  {
-    id: "cm729b41a000bqqb4ypgf8jz3",
-    slug: "yep5ivt6m729b3vqmak9ee3v",
-    isVerified: false,
-    cardDetails: {
-      id: "1739406796099", 
-      beds: 5,
-      sqft: 2500,
-      baths: 3,
-      image: "https://aven.s3.ap-south-1.amazonaws.com/1739385520016-A2189907_32.jpg",
-      price: 725000,
-      title: "135 Lake View Dr",
-      address: "135 Lake View Dr, Calgary, T3J0Y8",
-      parking: 3,
-      isVerified: false
-    },
-    createdAt: "2025-02-12T18:42:53.607Z",
-    createdBy: {
-      id: "cm6s6kjkr00rhqqt57vzon2br", 
-      name: "Karan Singh",
-      email: "agent@avencrm.com"
-    }
-  }
-];
+import { api } from '@/utils/api-client';
 
 export default function Property() {
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [myProperties, setMyProperties] = useState<Property[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      const response = await api.getProperties();
+      console.log('[Property Screen] Fetched properties:', response);
+      setAllProperties((response.allProperty || []).filter(p => p.isVerified));
+      setMyProperties((response.myProperty || []).filter(p => p.isVerified));
+    } catch (err) {
+      console.error('[Property Screen] Error fetching properties:', err);
+      setError('Failed to load properties');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#5932EA" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  const displayProperties = activeTab === 'all' ? allProperties : myProperties;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Properties</Text>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'my' && styles.activeTab]}
+            onPress={() => setActiveTab('my')}
+          >
+            <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>
+              My Properties ({myProperties.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'all' && styles.activeTab]}
+            onPress={() => setActiveTab('all')}
+          >
+            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+              All Properties ({allProperties.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <ScrollView style={styles.content}>
-        {MOCK_PROPERTIES.map((property) => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-          />
-        ))}
+        {displayProperties.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              No properties found in {activeTab === 'all' ? 'all properties' : 'my properties'}
+            </Text>
+          </View>
+        ) : (
+          displayProperties.map((property) => (
+            <PropertyCard
+              key={property.id}
+              property={property}
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -106,10 +103,52 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 16,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    backgroundColor: '#F4F6FA',
+  },
+  activeTab: {
+    backgroundColor: '#5932EA',
+  },
+  tabText: {
+    textAlign: 'center',
+    color: '#374151',
+    fontSize: 14,
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   content: {
     padding: 2,
     paddingHorizontal: 26,
-    gap: 12,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF4444',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  emptyState: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

@@ -14,7 +14,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const handleShare = async () => {
     try {
       const propertyUrl = `https://crm.avencrm.com/properties/${property.id}?agentId=${user?.id || property.createdBy.id}`;
-      const message = `Check out this amazing property!\n\n${property.cardDetails.title}\n${property.cardDetails.address}\n\nPrice: $${property.cardDetails.price.toLocaleString()}\n• ${property.cardDetails.beds} beds\n• ${property.cardDetails.baths} baths\n• ${property.cardDetails.parking} parking\n• ${property.cardDetails.sqft.toLocaleString()} sq ft\n\nListed by: ${property.createdBy.name}\n\nView more details at: ${propertyUrl}`;
+      const message = `Check out this amazing property!\n\n${property.cardDetails.address}\n\nPrice: $${property.cardDetails.price.toLocaleString()}\n• ${property.cardDetails.beds} beds\n• ${property.cardDetails.baths} baths\n• ${property.cardDetails.parking} parking\n• ${property.cardDetails.sqft.toLocaleString()} sq ft\n\nView more details at: ${propertyUrl}`;
       
       await Share.share({
         message,
