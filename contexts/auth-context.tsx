@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = await AsyncStorage.getItem('auth_token');
       if (token) {
-        api.setToken(token);
+        await api.setToken(token);
         const userData = await api.getCurrentUser();
         setUser(userData);
         setIsAuthenticated(true);
@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error loading stored auth:', error);
       await AsyncStorage.removeItem('auth_token');
+      await api.clearToken();
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, password: string) {
     try {
       const response = await api.login(email, password);
-      await AsyncStorage.setItem('auth_token', response.token);
       setUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     try {
       await AsyncStorage.removeItem('auth_token');
-      api.clearToken();
+      await api.clearToken();
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {

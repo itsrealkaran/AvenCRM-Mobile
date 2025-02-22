@@ -1,7 +1,9 @@
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
+// const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://backend.avencrm.com';
 const AUTH_TOKEN_KEY = 'auth_token';
 
 interface LoginResponse {
@@ -15,19 +17,55 @@ interface LoginResponse {
   };
 }
 
-interface DashboardData {
-  totalLeads: number;
-  totalDeals: number;
-  pendingTasks: number;
-  revenue: number;
-  performanceData: Array<{
-    month: string;
-    deals: number;
-  }>;
+interface Property {
+  id: string;
+  title: string;
+  description?: string;
+  price?: number;
+  location?: string;
+  propertyType?: string;
+  status?: 'AVAILABLE' | 'SOLD' | 'RENTED' | 'PENDING';
+  images?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 class ApiClient {
+  private api: AxiosInstance;
   private token: string | null = null;
+
+  constructor() {
+    this.api = axios.create({
+      baseURL: API_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Add response interceptor for handling errors
+    this.api.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        if (error.response?.status === 401) {
+          await this.clearToken();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    this.api.interceptors.request.use(
+      async (config) => {
+        const token = await this.getStoredToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+  }
 
   async initialize() {
     try {
@@ -40,7 +78,7 @@ class ApiClient {
     }
   }
 
-  async getStoredToken() {
+  private async getStoredToken() {
     if (!this.token) {
       this.token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
     }
@@ -57,55 +95,42 @@ class ApiClient {
     await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
   }
 
-  private async fetch(endpoint: string, options: RequestInit = {}) {
-    const token = await this.getStoredToken();
-    
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    };
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    if (response.status === 401) {
-      await this.clearToken();
-      throw new Error('Authentication expired');
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `API Error: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
+  // Auth endpoints
   async login(email: string, password: string): Promise<LoginResponse> {
-    const response = await this.fetch('/auth/sign-in/agents', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    
-    if (response.token) {
-      await this.setToken(response.token);
+    const response = await this.api.post('/auth/sign-in/agents', { email, password });
+    console.log('[API] Login response:', response.data);
+    if (response.data.token) {
+      await this.setToken(response.data.token);
     }
-    
-    return response;
+    return response.data;
   }
 
   async getCurrentUser() {
-    return this.fetch('/auth/me');
+    const response = await this.api.get('/auth/me');
+    console.log('[API] Get current user response:', response.data);
+    return response.data;
   }
 
-  async getAgentDashboard(): Promise<DashboardData> {
-    return this.fetch('/api/dashboard/agent');      
+  // Dashboard endpoints
+  async getAgentDashboard() {
+    const response = await this.api.get('/api/dashboard/agent');
+    console.log('[API] Get agent dashboard response:', response.data);
+    return response.data;
   }
 
-  // Add more API methods as needed for other endpoints
+  // Property endpoints
+  async getProperties(): Promise<Property[]> {
+    try {
+      const response = await this.api.get('/api/property');
+      console.log('[API] Get properties response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching properties:', error);
+      throw error;
+    }
+  }
+
+  // Add more API methods as needed, following the same pattern
 }
 
 export const api = new ApiClient();

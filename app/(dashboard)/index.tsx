@@ -11,7 +11,9 @@ interface DashboardData {
   totalLeads: number;
   totalDeals: number;
   pendingTasks: number;
-  revenue: number;
+  revenue: {
+    myRevenue: number;
+  };
   performanceData: Array<{
     month: string;
     deals: number;
@@ -66,7 +68,7 @@ export default function Dashboard() {
     { 
       id: '4', 
       title: "My Revenue", 
-      value: `$${dashboardData?.revenue.toLocaleString() || "0"}`, 
+      value: `$${dashboardData?.revenue?.myRevenue.toLocaleString() || "0"}`, 
       subtitle: "Total revenue generated",
       icon: 'cash-outline' as const,
       color: '#FFB547'

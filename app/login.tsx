@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/auth-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 
 export default function Login() {
   const router = useRouter();
@@ -10,19 +11,21 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
+  const [errors, setErrors] = useState<{email?: string; password?: string; general?: string}>({});
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string} = {};
     
     if (!email) {
       newErrors.email = 'Email is required';
-    } else if (!email.includes('@')) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
     if (!password) {
       newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -39,9 +42,26 @@ export default function Login() {
       await login(email, password);
       router.replace('/(dashboard)');
     } catch (error) {
-      setErrors({
-        password: 'Invalid email or password'
-      });
+      // Handle different types of errors
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          setErrors({
+            general: 'Invalid email or password'
+          });
+        } else if (error.response?.status === 429) {
+          setErrors({
+            general: 'Too many attempts. Please try again later'
+          });
+        } else {
+          setErrors({
+            general: 'An error occurred. Please try again'
+          });
+        }
+      } else {
+        setErrors({
+          general: 'An unexpected error occurred'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -54,18 +74,26 @@ export default function Login() {
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
           
+          {errors.general && (
+            <Text style={[styles.errorText, styles.generalError]}>
+              {errors.general}
+            </Text>
+          )}
+          
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.email && styles.inputError]}
               placeholder="Email"
               value={email}
               onChangeText={(text) => {
-                setEmail(text);
-                setErrors(prev => ({...prev, email: undefined}));
+                setEmail(text.trim());
+                setErrors(prev => ({...prev, email: undefined, general: undefined}));
               }}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
               placeholderTextColor="#666"
+              editable={!isLoading}
             />
             {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           </View>
@@ -77,10 +105,12 @@ export default function Login() {
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
-                setErrors(prev => ({...prev, password: undefined}));
+                setErrors(prev => ({...prev, password: undefined, general: undefined}));
               }}
               secureTextEntry
+              autoComplete="password"
               placeholderTextColor="#666"
+              editable={!isLoading}
             />
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
@@ -95,7 +125,11 @@ export default function Login() {
             </Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            onPress={() => router.push('/')}
+            disabled={isLoading}
+          >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
@@ -178,7 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#9d71f3',
   },
   forgotPassword: {
     marginTop: 16,
@@ -188,5 +222,12 @@ const styles = StyleSheet.create({
     color: '#7c3aed',
     fontSize: 14,
     fontWeight: '500',
+  },
+  generalError: {
+    textAlign: 'center',
+    marginBottom: 16,
+    backgroundColor: '#fee2e2',
+    padding: 8,
+    borderRadius: 4,
   },
 });
