@@ -25,9 +25,9 @@ export function NotesTimeline({ notes, onClose }: NotesTimelineProps) {
             {index < notes.length - 1 && <View style={styles.timelineLine} />}
             <View style={styles.noteContent}>
               <Text style={styles.noteTimestamp}>
-                {new Date(note.timestamp).toLocaleString()}
+                {new Date(note.time).toLocaleString()}
               </Text>
-              <Text style={styles.noteText}>{note.content}</Text>
+              <Text style={styles.noteText}>{note.note}</Text>
             </View>
           </View>
         ))}

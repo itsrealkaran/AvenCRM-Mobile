@@ -4,118 +4,144 @@ import { Button } from './button';
 import { Card } from './card';
 import { Select } from './select';
 import { CountryCodeDropdown } from './country-code-dropdown';
-import type { DealRole, Lead, LeadStatus, NoteEntry } from '@/types/lead';
+import type { Lead, LeadStatus, PropertyType, LeadInput } from '@/types/lead';
 
 interface LeadFormProps {
   initialData?: Partial<Lead>;
-  onSubmit: (data: Omit<Lead, 'id' | 'createdAt'>) => void;
+  onSubmit: (data: LeadInput) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-const STATUS_OPTIONS: LeadStatus[] = ['New', 'Contacted', 'Qualified', 'Lost', 'Won'];
-const DEAL_ROLE_OPTIONS = ['Rent', 'Sale', 'Buy'];
+const STATUS_OPTIONS: LeadStatus[] = ['NEW', 'CONTACTED', 'QUALIFIED', 'LOST', 'WON'];
+const PROPERTY_TYPE_OPTIONS: PropertyType[] = ['RESIDENTIAL', 'COMMERCIAL'];
 
 export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFormProps) {
-  const [formData, setFormData] = useState({
+  const splitPhoneNumber = (phone: string = '') => {
+    const match = phone.match(/^(\+\d{1,4})?(.*)$/);
+    return {
+      countryCode: match?.[1] || '+1', // Default to +1 if no country code
+      number: match?.[2]?.trim() || ''
+    };
+  };
+
+  const initialPhone = splitPhoneNumber(initialData?.phone);
+  const [formData, setFormData] = useState<LeadInput & {countryCode: string}>({
     name: initialData?.name || '',
     email: initialData?.email || '',
-    countryCode: initialData?.phone?.split(' ')[0] || '+1',
-    phone: initialData?.phone?.split(' ')[1] || '',
-    status: initialData?.status || 'New' as LeadStatus,
-    dealRole: initialData?.dealRole || 'Sale',
-    notes: initialData?.notes || [],
+    phone: initialPhone.number,
+    countryCode: initialPhone.countryCode,
+    location: initialData?.location || '',
+    budget: initialData?.budget || null,
+    propertyType: initialData?.propertyType || 'RESIDENTIAL',
+    source: initialData?.source || 'MANUAL',
+    notes: initialData?.notes?.[0]?.note || '',
+    expectedDate: initialData?.expectedDate || undefined,
   });
-  const [newNote, setNewNote] = useState('');
 
   const handleSubmit = () => {
-    const updatedNotes: NoteEntry[] = newNote
-      ? [...formData.notes, { id: Date.now().toString(), content: newNote, timestamp: new Date().toISOString() }]
-      : formData.notes;
-    onSubmit({
+    const submissionData = {
       ...formData,
-      phone: `${formData.countryCode} ${formData.phone}`,
-      notes: updatedNotes,
-    });
+      phone: `${formData.countryCode}${formData.phone}`.trim(),
+    };
+    delete (submissionData as any).countryCode;
+    console.log(submissionData);
+    onSubmit(submissionData);
   };
 
   return (
     <Card style={styles.card}>
-      <ScrollView>
-        <View style={styles.field}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.name}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
-            placeholder="Enter name"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.email}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
-            placeholder="Enter email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Phone</Text>
-          <View style={styles.phoneContainer}>
-            <CountryCodeDropdown
-              value={formData.countryCode}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, countryCode: value }))}
-            />
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.field}>
+            <Text style={styles.label}>Name *</Text>
             <TextInput
-              style={[styles.input, styles.phoneInput]}
-              value={formData.phone}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, phone: text }))}
-              placeholder="Enter phone number"
-              keyboardType="phone-pad"
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+              placeholder="Enter name"
             />
           </View>
-        </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Status</Text>
-          <Select
-            value={formData.status}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as LeadStatus }))}
-            options={STATUS_OPTIONS.map((status) => ({
-              label: status,
-              value: status,
-            }))}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Email *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.email}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
+              placeholder="Enter email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Deal Role</Text>
-          <Select
-            value={formData.dealRole}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, dealRole: value as DealRole }))}
-            options={DEAL_ROLE_OPTIONS.map((role) => ({
-              label: role,
-              value: role,
-            }))}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone</Text>
+            <View style={styles.phoneContainer}>
+              <CountryCodeDropdown
+                value={formData.countryCode}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, countryCode: value }))}
+              />
+              <TextInput
+                style={[styles.input, styles.phoneInput]}
+                value={formData.phone}
+                onChangeText={(text) => setFormData((prev) => ({ ...prev, phone: text }))}
+                placeholder="Enter phone number"
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Add Note</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={newNote}
-            onChangeText={setNewNote}
-            placeholder="Enter new note"
-            multiline
-            numberOfLines={4}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Property Type *</Text>
+            <Select
+              value={formData.propertyType}
+              onValueChange={(value) => 
+                setFormData((prev) => ({ ...prev, propertyType: value as PropertyType }))
+              }
+              options={PROPERTY_TYPE_OPTIONS.map((type) => ({
+                label: type,
+                value: type,
+              }))}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Location</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.location || ''}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, location: text }))}
+              placeholder="Enter location"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Budget</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.budget?.toString() || ''}
+              onChangeText={(text) => {
+                const budget = text ? Number(text) : undefined;
+                setFormData((prev) => ({ ...prev, budget }));
+              }}
+              placeholder="Enter budget"
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Notes</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={formData.notes || ''}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
+              placeholder="Enter notes"
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+        </ScrollView>
 
         <View style={styles.actions}>
           <Button 
@@ -133,7 +159,7 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             {initialData ? 'Update' : 'Create'} Lead
           </Button>
         </View>
-      </ScrollView>
+      </View>
     </Card>
   );
 }
@@ -141,6 +167,13 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
 const styles = StyleSheet.create({
   card: {
     padding: 16,
+  },
+  container: {
+    height: '100%',
+    flexDirection: 'column',
+  },
+  scrollView: {
+    flex: 1,
   },
   field: {
     marginBottom: 16,
@@ -168,6 +201,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: 8,
     marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
   button: {
     minWidth: 100,
@@ -181,4 +217,3 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
-

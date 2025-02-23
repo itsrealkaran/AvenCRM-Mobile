@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PropertyResponse } from '@/types/property';
+import type { Lead, LeadResponse, LeadInput, LeadStatus, LeadTransfer } from '@/types/lead';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://backend.avencrm.com';
@@ -114,6 +115,149 @@ class ApiClient {
       return response.data;
     } catch (error) {
       console.error('[API] Error fetching properties:', error);
+      throw error;
+    }
+  }
+
+  // Leads endpoints
+  async getLeads(params?: { page?: number; limit?: number; status?: string }): Promise<LeadResponse> {
+    try {
+      const response = await this.api.get('/leads', { params });
+      console.log('[API] Get leads response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching leads:', error);
+      throw error;
+    }
+  }
+
+  async getLeadById(id: string): Promise<Lead> {
+    try {
+      const response = await this.api.get(`/leads/${id}`);
+      console.log('[API] Get lead by ID response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching lead:', error);
+      throw error;
+    }
+  }
+
+  async createLead(data: LeadInput): Promise<Lead> {
+    try {
+      const formData = new FormData();
+
+      // Clean up the data and handle dates
+      const cleanData = {
+        ...data,
+        expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
+        budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+      };
+
+      formData.append('data', JSON.stringify(cleanData));
+
+      const response = await this.api.post('/leads', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('[API] Create lead response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error creating lead:', error);
+      throw error;
+    }
+  }
+
+  async updateLead(id: string, data: LeadInput): Promise<Lead> {
+    try {
+      const formData = new FormData();
+
+      // Clean up the data and handle dates
+      const cleanData = {
+        ...data,
+        expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
+        budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+      };
+
+      formData.append('data', JSON.stringify(cleanData));
+
+      const response = await this.api.put(`/leads/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('[API] Update lead response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating lead:', error);
+      throw error;
+    }
+  }
+
+  async updateLeadStatus(id: string, status: LeadStatus): Promise<Lead> {
+    try {
+      const response = await this.api.patch(`/leads/${id}/status`, { status });
+      console.log('[API] Update lead status response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating lead status:', error);
+      throw error;
+    }
+  }
+
+  async deleteLead(id: string): Promise<void> {
+    try {
+      await this.api.delete(`/leads/${id}`);
+      console.log('[API] Delete lead success');
+    } catch (error) {
+      console.error('[API] Error deleting lead:', error);
+      throw error;
+    }
+  }
+
+  async bulkDeleteLeads(leadIds: string[]): Promise<void> {
+    try {
+      await this.api.delete('/leads', { data: { leadIds } });
+      console.log('[API] Bulk delete leads success');
+    } catch (error) {
+      console.error('[API] Error bulk deleting leads:', error);
+      throw error;
+    }
+  }
+
+  async bulkAssignLeads(leadIds: string[], agentId: string): Promise<void> {
+    try {
+      await this.api.post('/leads/bulk-assign', { leadIds, agentId });
+      console.log('[API] Bulk assign leads success');
+    } catch (error) {
+      console.error('[API] Error bulk assigning leads:', error);
+      throw error;
+    }
+  }
+
+  async convertToDeal(data: LeadTransfer): Promise<{ deal: any; message: string }> {
+    try {
+      const response = await this.api.post('/leads/convert', {
+        ...data,
+        expectedCloseDate: data.expectedCloseDate 
+          ? new Date(data.expectedCloseDate).toISOString() 
+          : undefined,
+      });
+      console.log('[API] Convert to deal response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error converting lead to deal:', error);
+      throw error;
+    }
+  }
+
+  async addNote(id: string, note: string): Promise<Lead> {
+    try {
+      const response = await this.api.post(`/leads/${id}/notes`, { note });
+      console.log('[API] Add note response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error adding note:', error);
       throw error;
     }
   }

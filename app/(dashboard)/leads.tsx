@@ -1,106 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TextInput, FlatList, Modal, ActivityIndicator } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { LeadListItem } from '@/components/ui/lead-list-item';
 import { LeadForm } from '@/components/ui/lead-form';
 import { LeadTransferForm } from '@/components/ui/lead-transfer-form';
-import type { Lead, LeadStatus } from '@/types/lead';
+import type { Lead, LeadInput, LeadStatus, LeadTransfer, LeadFormData } from '@/types/lead';
 import { AntDesign } from '@expo/vector-icons';
-
-// API functions (replace with actual API calls)
-const api = {
-  fetchLeads: async (): Promise<Lead[]> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(MOCK_LEADS), 1000);
-    });
-  },
-  createLead: async (lead: Omit<Lead, 'id' | 'createdAt'>): Promise<Lead> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newLead: Lead = {
-          ...lead,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-        };
-        resolve(newLead);
-      }, 1000);
-    });
-  },
-  updateLead: async (lead: Lead): Promise<Lead> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(lead), 1000);
-    });
-  },
-  deleteLead: async (id: string): Promise<void> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
-  },
-  transferLead: async (transfer: { leadId: string; amount: number; expectedCloseDate: string }): Promise<void> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
-  },
-};
-
-// Mock data
-const MOCK_LEADS: Lead[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+49 234567890',
-    status: 'New',
-    dealRole: 'Buy',
-    notes: [
-      { id: '1', content: 'Initial contact made', timestamp: '2024-01-15T10:00:00Z' },
-    ],
-    createdAt: '2024-01-15T10:00:00Z',
-  },
-  // Add more mock leads as needed
-];
+import { api } from '@/utils/api-client';
 
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [totalLeads, setTotalLeads] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const LIMIT = 10;
 
   useEffect(() => {
     fetchLeads();
   }, []);
 
-  const fetchLeads = async () => {
-    setIsLoading(true);
+  const fetchLeads = async (refresh = false) => {
     try {
-      const fetchedLeads = await api.fetchLeads();
-      setLeads(fetchedLeads);
+      if (refresh) {
+        setPage(1);
+        setHasMore(true);
+      }
+      setIsLoading(true);
+      const response = await api.getLeads({ 
+        page: refresh ? 1 : page, 
+        limit: LIMIT 
+      });
+      
+      const newLeads = response.data;
+      setTotalLeads(response.meta.total);
+      
+      if (refresh) {
+        setLeads(newLeads);
+      } else {
+        setLeads(prev => [...prev, ...newLeads]);
+      }
+      setHasMore(newLeads.length === LIMIT);
+      
     } catch (error) {
       console.error('Error fetching leads:', error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const filteredLeads = leads.filter(lead => 
-    lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.phone.includes(searchQuery)
-  );
-
-  const handleAddLead = async (data: Omit<Lead, 'id' | 'createdAt'>) => {
-    setIsLoading(true);
+  const handleAddLead = async (data: LeadInput) => {
     try {
-      const newLead = await api.createLead(data);
+      setIsLoading(true);
+      
+      // Create FormData and clean up the data
+      const formData = new FormData();
+      const cleanData = {
+        ...data,
+        expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
+        budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+      };
+
+      formData.append('data', JSON.stringify(cleanData));
+
+      const newLead = await api.createLead(cleanData);
       setLeads(prev => [newLead, ...prev]);
       setShowAddModal(false);
     } catch (error) {
@@ -110,15 +80,25 @@ export default function Leads() {
     }
   };
 
-  const handleUpdateLead = async (data: Omit<Lead, 'id' | 'createdAt'>) => {
+  const handleUpdateLead = async (data: LeadInput, files?: File[]) => {
     if (!editingLead) return;
-    setIsLoading(true);
     try {
-      const updatedLead = await api.updateLead({ ...editingLead, ...data });
+      setIsLoading(true);
+      
+      // Create FormData and clean up the data
+      const formData = new FormData();
+      const cleanData = {
+        ...data,
+        expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
+        budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+      };
+
+      const updatedLead = await api.updateLead(editingLead.id, cleanData);
       setLeads(prev => prev.map(lead => 
         lead.id === updatedLead.id ? updatedLead : lead
       ));
       setEditingLead(null);
+      setShowAddModal(false);
     } catch (error) {
       console.error('Error updating lead:', error);
     } finally {
@@ -127,8 +107,8 @@ export default function Leads() {
   };
 
   const handleDeleteLead = async (id: string) => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       await api.deleteLead(id);
       setLeads(prev => prev.filter(lead => lead.id !== id));
     } catch (error) {
@@ -138,12 +118,15 @@ export default function Leads() {
     }
   };
 
-  const handleTransfer = async (data: { leadId: string; amount: number; expectedCloseDate: string }) => {
-    setIsLoading(true);
+  const handleTransfer = async (data: LeadTransfer) => {
     try {
-      await api.transferLead(data);
-      // You might want to update the lead status or add a note about the transfer
-      console.log('Lead transferred successfully');
+      setIsLoading(true);
+      await api.convertToDeal({
+        leadId: data.leadId,
+        dealAmount: data.dealAmount,
+        expectedCloseDate: data.expectedCloseDate
+      });
+      setLeads(prev => prev.filter(lead => lead.id !== data.leadId));
       setShowTransferModal(false);
       setSelectedLeadId(null);
     } catch (error) {
@@ -154,13 +137,15 @@ export default function Leads() {
   };
 
   const handleStatusChange = async (id: string, newStatus: LeadStatus) => {
-    setIsLoading(true);
     try {
-      const leadToUpdate = leads.find(lead => lead.id === id);
-      if (leadToUpdate) {
-        const updatedLead = await api.updateLead({ ...leadToUpdate, status: newStatus });
+      setIsLoading(true);
+      const updatedLead = await api.updateLeadStatus(id, newStatus);
+      if (updatedLead) {
         setLeads(prev => prev.map(lead => 
-          lead.id === updatedLead.id ? updatedLead : lead
+          lead.id === id ? {
+            ...lead,
+            status: newStatus
+          } : lead
         ));
       }
     } catch (error) {
@@ -170,11 +155,40 @@ export default function Leads() {
     }
   };
 
+  const filteredLeads = leads.filter(lead => 
+    lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    lead.phone.includes(searchQuery) ||
+    (lead.location?.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const handleLoadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage(prev => prev + 1);
+      fetchLeads();
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchLeads(true);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Leads</Text>
-        <Button style={{backgroundColor: '#5932EA11'}} variant='outline' size='md' onPress={() => setShowAddModal(true)}>
+        <View>
+          <Text style={styles.title}>Leads</Text>
+          <Text style={styles.subtitle}>
+            Found {totalLeads} leads
+          </Text>
+        </View>
+        <Button 
+          style={{backgroundColor: '#5932EA11'}} 
+          variant='outline' 
+          size='md' 
+          onPress={() => setShowAddModal(true)}
+        >
           <View style={styles.addButton}>
             <AntDesign name="adduser" size={20} color="#5932EA" />
             <Text style={styles.buttonText}>Add Lead</Text>
@@ -186,7 +200,7 @@ export default function Leads() {
         style={styles.searchInput}
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholder="Search leads..."
+        placeholder="Search leads by name, email, or phone..."
       />
 
       <FlatList
@@ -205,8 +219,24 @@ export default function Leads() {
           />
         )}
         contentContainerStyle={styles.list}
-        refreshing={isLoading}
-        onRefresh={fetchLeads}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              {searchQuery 
+                ? 'No leads found matching your search'
+                : 'No leads found. Add your first lead!'}
+            </Text>
+          </View>
+        }
+        ListFooterComponent={
+          isLoading && !refreshing ? (
+            <ActivityIndicator size="small" color="#5932EA" style={styles.loader} />
+          ) : null
+        }
       />
 
       <Modal
@@ -260,13 +290,27 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    color: '#5932EA',
+    fontSize: 14,
+    fontWeight: '500',
   },
   searchInput: {
     margin: 16,
@@ -291,16 +335,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     maxHeight: '80%',
   },
-  addButton: {
-    flexDirection: 'row',
+  emptyState: {
+    padding: 20,
     alignItems: 'center',
-    borderRadius: 8,
   },
-  buttonText: {
-    color: '#5932EA',
-    fontWeight: '500',
-    marginLeft: 6,
+  emptyStateText: {
+    color: '#666',
     fontSize: 16,
+    textAlign: 'center',
+  },
+  loader: {
+    marginVertical: 20,
   },
 });
 

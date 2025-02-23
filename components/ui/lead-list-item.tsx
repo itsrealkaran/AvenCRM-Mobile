@@ -26,13 +26,10 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.name}>{lead.name}</Text>
+          <Text style={styles.name}>{lead.name}</Text>
         <TouchableOpacity
           onPress={() => setShowStatusDropdown(!showStatusDropdown)}
-          style={[
-            styles.status,
-            { backgroundColor: getStatusColor(lead.status) }
-          ]}
+          style={[styles.status, { backgroundColor: getStatusColor(lead.status) }]}
         >
           <Text style={styles.statusText}>{lead.status}</Text>
         </TouchableOpacity>
@@ -43,7 +40,7 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
           <Select
             value={lead.status}
             onValueChange={handleStatusChange}
-            options={['New', 'Contacted', 'Qualified', 'Lost', 'Won'].map(status => ({
+            options={['NEW', 'CONTACTED', 'QUALIFIED', 'LOST', 'WON'].map(status => ({
               label: status,
               value: status,
             }))}
@@ -60,13 +57,29 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
           <Ionicons name="call-outline" size={16} color="#666" />
           <Text style={styles.detailText}>{lead.phone}</Text>
         </View>
+        {lead.location && (
+          <View style={styles.detailItem}>
+            <Ionicons name="location-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>{lead.location}</Text>
+          </View>
+        )}
+        {lead.budget && (
+          <View style={styles.detailItem}>
+            <Ionicons name="cash-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>${lead.budget.toLocaleString()}</Text>
+          </View>
+        )}
+        <View style={styles.detailItem}>
+          <Ionicons name="home-outline" size={16} color="#666" />
+          <Text style={styles.detailText}>{lead.propertyType}</Text>
+        </View>
       </View>
 
       <TouchableOpacity onPress={() => setShowNotesTimeline(true)} style={styles.notesSection}>
         <Text style={styles.notesTitle}>Notes ({lead.notes.length})</Text>
         {lead.notes.length > 0 && (
           <Text style={styles.latestNote} numberOfLines={2}>
-            Latest: {lead.notes[lead.notes.length - 1].content}
+            Latest: {lead.notes[lead.notes.length - 1].note}
           </Text>
         )}
       </TouchableOpacity>
@@ -97,7 +110,11 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <NotesTimeline 
-              notes={lead.notes} 
+              notes={lead.notes.map(n => ({
+                id: n.time,
+                note: n.note,
+                time: n.time
+              }))} 
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>
@@ -107,17 +124,17 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
   );
 }
 
-function getStatusColor(status: Lead['status']): string {
+function getStatusColor(status: LeadStatus): string {
   switch (status) {
-    case 'New':
+    case 'NEW':
       return '#E3F2FD';
-    case 'Contacted':
+    case 'CONTACTED':
       return '#FFF3E0';
-    case 'Qualified':
+    case 'QUALIFIED':
       return '#E8F5E9';
-    case 'Lost':
+    case 'LOST':
       return '#FFEBEE';
-    case 'Won':
+    case 'WON':
       return '#E0F2F1';
     default:
       return '#F5F5F5';
@@ -139,6 +156,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+  },
+  agentName: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
   status: {
     paddingHorizontal: 8,
@@ -209,4 +231,3 @@ const styles = StyleSheet.create({
     width: '90%',
   },
 });
-
