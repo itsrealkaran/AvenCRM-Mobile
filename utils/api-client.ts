@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PropertyResponse } from '@/types/property';
-import type { Lead, LeadResponse, LeadInput, LeadStatus, LeadTransfer } from '@/types/lead';
+import type { Lead, LeadResponse, LeadInput, LeadStatus, LeadTransfer, LeadInputPayload } from '@/types/lead';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://backend.avencrm.com';
@@ -142,7 +142,7 @@ class ApiClient {
     }
   }
 
-  async createLead(data: LeadInput): Promise<Lead> {
+  async createLead(data: LeadInputPayload): Promise<Lead> {
     try {
       const formData = new FormData();
 
@@ -168,7 +168,7 @@ class ApiClient {
     }
   }
 
-  async updateLead(id: string, data: LeadInput): Promise<Lead> {
+  async updateLead(id: string, data: LeadInputPayload): Promise<Lead> {
     try {
       const formData = new FormData();
 

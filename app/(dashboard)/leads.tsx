@@ -66,6 +66,7 @@ export default function Leads() {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+        notes: [{id:new Date().toISOString(), note: data.notes, time: new Date().toISOString()}]
       };
 
       formData.append('data', JSON.stringify(cleanData));
@@ -91,7 +92,10 @@ export default function Leads() {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
+        notes: [{id:new Date().toISOString(), note: data.notes, time: new Date().toISOString()}]
       };
+
+      formData.append('data', JSON.stringify(cleanData));
 
       const updatedLead = await api.updateLead(editingLead.id, cleanData);
       setLeads(prev => prev.map(lead => 

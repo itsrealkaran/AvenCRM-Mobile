@@ -62,6 +62,10 @@ export interface LeadTransfer {
   expectedCloseDate?: string;
 }
 
+export interface LeadInputPayload extends Omit<LeadInput, 'notes'> {
+  notes: NoteEntry[];
+}
+
 // Add new type for form data conversion
 export interface LeadFormData extends FormData {
   append(name: keyof LeadInput, value: string | Blob, fileName?: string): void;
