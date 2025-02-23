@@ -200,6 +200,10 @@ class ApiClient {
       console.log('[API] Update lead status response:', response.data);
       return response.data;
     } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 500) {
+        console.log('[API] Server error updating lead status:', error);
+        return error.response.data;
+      }
       console.error('[API] Error updating lead status:', error);
       throw error;
     }
