@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { MetricCard } from '@/components/ui/metric-card';
 import { PerformanceChart } from '@/components/ui/performance-chart';
 import { TaskList } from '@/components/ui/task-list';
@@ -16,7 +16,8 @@ interface DashboardData {
   };
   performanceData: Array<{
     month: string;
-    deals: number;
+    grossRevenue: number;
+    myRevenue: number;
   }>;
 }
 
@@ -74,23 +75,26 @@ export default function Dashboard() {
       color: '#FFB547'
     },
   ];
-  const performanceData = [
-    { month: 'Jan', total: 4, gross: 2 },
-    { month: 'Feb', total: 6, gross: 3 },
-    { month: 'Mar', total: 8, gross: 5 },
-    { month: 'Apr', total: 6, gross: 4 },
-    { month: 'May', total: 12, gross: 8 },
-    { month: 'Jun', total: 8, gross: 6 },
-    { month: 'Jul', total: 10, gross: 7 },
-    { month: 'Aug', total: 9, gross: 5 },
-    { month: 'Sep', total: 11, gross: 8 },
-    { month: 'Oct', total: 13, gross: 9 },
-    { month: 'Nov', total: 15, gross: 11 },
-    { month: 'Dec', total: 14, gross: 10 },
-  ];
 
-
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
+  const performanceData = months.map(month => {
+    const apiData = dashboardData?.performanceData?.find(d => d.month === month);
+    return {
+      month,
+      total: apiData?.grossRevenue || 0,
+      gross: apiData?.myRevenue || 0
+    };
+  });
+
+  if (isLoading) {
+    return (
+      <View style={[styles.scrollView, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#4318FF" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.scrollView}>
       <View style={styles.header}>
@@ -115,11 +119,11 @@ export default function Dashboard() {
           <PerformanceChart
             data={performanceData}
           />
-          <TaskList
+          {/* <TaskList
             title="Upcoming Tasks"
             subtitle="Your scheduled activities"
             tasks={[]} // You might want to add tasks endpoint and data
-          />
+          /> */}
         </View>
       </ScrollView>
     </View>
@@ -130,6 +134,10 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: '#FAFBFF',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     padding: 20,
@@ -153,4 +161,3 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
 });
-
