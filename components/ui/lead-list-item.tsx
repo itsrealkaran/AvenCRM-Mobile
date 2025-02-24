@@ -12,9 +12,10 @@ interface LeadListItemProps {
   onDelete: () => void;
   onTransfer: () => void;
   onStatusChange: (id: string, newStatus: LeadStatus) => void;
+  onNoteAdded: (updatedLead: Lead) => void;
 }
 
-export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChange }: LeadListItemProps) {
+export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChange, onNoteAdded }: LeadListItemProps) {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showNotesTimeline, setShowNotesTimeline] = useState(false);
 
@@ -40,7 +41,7 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
           <Select
             value={lead.status}
             onValueChange={handleStatusChange}
-            options={['NEW', 'CONTACTED', 'QUALIFIED', 'LOST', 'WON'].map(status => ({
+            options={['NEW', 'CONTACTED', 'QUALIFIED', 'NEGOTIATION', 'FOLLOW_UP', 'LOST', 'WON'].map(status => ({
               label: status,
               value: status,
             }))}
@@ -110,11 +111,13 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <NotesTimeline 
+              leadId={lead.id}
               notes={lead.notes.map(n => ({
                 id: n.time,
                 note: n.note,
                 time: n.time
               }))} 
+              onNoteAdded={onNoteAdded}
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>

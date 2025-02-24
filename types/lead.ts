@@ -1,4 +1,4 @@
-export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'LOST' | 'WON';
+export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'NEGOTIATION' | 'FOLLOW_UP' | 'LOST' | 'WON';
 export type DealRole = 'Sale' | 'Buy' | 'Rent';
 export type PropertyType = 'RESIDENTIAL' | 'COMMERCIAL';
 

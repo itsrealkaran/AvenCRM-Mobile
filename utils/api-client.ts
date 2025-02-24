@@ -2,7 +2,9 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PropertyResponse } from '@/types/property';
-import type { Lead, LeadResponse, LeadInput, LeadStatus, LeadTransfer, LeadInputPayload } from '@/types/lead';
+import type { Lead, LeadResponse, LeadStatus, LeadTransfer, LeadInputPayload } from '@/types/lead';
+import type { Deal, DealInput, DealResponse, DealStatus } from '@/types/deal';
+
 import type { Notification, NotificationResponse } from '@/types/notification';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
@@ -146,8 +148,6 @@ class ApiClient {
   async createLead(data: LeadInputPayload): Promise<Lead> {
     try {
       const formData = new FormData();
-
-      // Clean up the data and handle dates
       const cleanData = {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
@@ -172,8 +172,6 @@ class ApiClient {
   async updateLead(id: string, data: LeadInputPayload): Promise<Lead> {
     try {
       const formData = new FormData();
-
-      // Clean up the data and handle dates
       const cleanData = {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
@@ -263,6 +261,109 @@ class ApiClient {
       return response.data;
     } catch (error) {
       console.error('[API] Error adding note:', error);
+      throw error;
+    }
+  }
+
+  // Deals endpoints
+  async getDeals(params?: { page?: number; limit?: number; status?: string }): Promise<DealResponse> {
+    try {
+      const response = await this.api.get('/deals', { params });
+      console.log('[API] Get deals response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching deals:', error);
+      throw error;
+    }
+  }
+
+  async getDealById(id: string): Promise<Deal> {
+    try {
+      const response = await this.api.get(`/deals/${id}`);
+      console.log('[API] Get deal by ID response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching deal:', error);
+      throw error;
+    }
+  }
+
+  async createDeal(data: DealInput): Promise<Deal> {
+    try {
+      const formData = new FormData();
+      const cleanData = {
+        ...data,
+        expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate).toISOString() : undefined,
+        actualCloseDate: data.actualCloseDate ? new Date(data.actualCloseDate).toISOString() : undefined,
+      };
+
+      formData.append('data', JSON.stringify(cleanData));
+
+      const response = await this.api.post('/deals', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('[API] Create deal response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error creating deal:', error);
+      throw error;
+    }
+  }
+
+  async updateDeal(id: string, data: DealInput): Promise<Deal> {
+    try {
+      const formData = new FormData();
+      const cleanData = {
+        ...data,
+        expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate).toISOString() : undefined,
+        actualCloseDate: data.actualCloseDate ? new Date(data.actualCloseDate).toISOString() : undefined,
+      };
+
+      formData.append('data', JSON.stringify(cleanData));
+
+      const response = await this.api.put(`/deals/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('[API] Update deal response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating deal:', error);
+      throw error;
+    }
+  }
+
+  async updateDealStatus(id: string, status: DealStatus): Promise<Deal> {
+    try {
+      const response = await this.api.patch(`/deals/${id}/status`, { status });
+      console.log('[API] Update deal status response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating deal status:', error);
+      throw error;
+    }
+  }
+
+  async addDealNote(id: string, note: string): Promise<Deal> {
+    try {
+      const response = await this.api.post(`/deals/${id}/notes`, { note });
+      console.log('[API] Add deal note response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error adding deal note:', error);
+      throw error;
+    }
+  }
+
+  async deleteDeal(id: string): Promise<void> {
+    try {
+      await this.api.delete(`/deals/${id}`);
+      console.log('[API] Delete deal success');
+    } catch (error) {
+      console.error('[API] Error deleting deal:', error);
       throw error;
     }
   }
