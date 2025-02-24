@@ -117,7 +117,11 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
                 note: n.note,
                 time: n.time
               }))} 
-              onNoteAdded={onNoteAdded}
+              onNoteAdded={(updatedLead) => {
+                if ('source' in updatedLead) {
+                  onNoteAdded(updatedLead as Lead);
+                }
+              }}
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>

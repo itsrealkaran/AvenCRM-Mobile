@@ -5,15 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { Select } from './select';
 import { NotesTimeline } from './notes-timeline';
 import type { Deal, DealStatus } from '@/types/deal';
+import { format } from 'date-fns';
 
 interface DealListItemProps {
   deal: Deal;
   onEdit: () => void;
   onDelete: () => void;
-  onStatusChange: (id: string, newStatus: DealStatus) => void;
+  onStatusChange: (id: string, status: DealStatus) => void;
+  onNoteAdded: (updatedDeal: Deal) => void;
+  onViewCoOwners: () => void;
 }
 
-export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealListItemProps) {
+export function DealListItem({ 
+  deal, 
+  onEdit, 
+  onDelete, 
+  onStatusChange,
+  onNoteAdded,
+  onViewCoOwners
+}: DealListItemProps) {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showNotesTimeline, setShowNotesTimeline] = useState(false);
 
@@ -22,19 +32,10 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
     setShowStatusDropdown(false);
   };
 
-  const getCloseProbability = (status: DealStatus): number => {
-    switch (status) {
-      case 'New': return 0.2;
-      case 'Discovery': return 0.4;
-      case 'Proposal': return 0.6;
-      case 'Negotiation': return 0.8;
-      case 'Won': return 1;
-      default: return 0;
-    }
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not set';
+    return format(new Date(dateString), 'MMM dd, yyyy');
   };
-
-  const closeProbability = getCloseProbability(deal.status);
-  const forecastValue = deal.amount * closeProbability;
 
   return (
     <Card style={styles.card}>
@@ -56,7 +57,7 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
           <Select
             value={deal.status}
             onValueChange={handleStatusChange}
-            options={['New', 'Discovery', 'Proposal', 'Negotiation', 'Won'].map(status => ({
+            options={['NEW', 'DISCOVERY', 'PROPOSAL', 'NEGOTIATION', 'WON'].map(status => ({
               label: status,
               value: status,
             }))}
@@ -75,33 +76,33 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="cash-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>${deal.amount.toLocaleString()}</Text>
+          <Text style={styles.detailText}>${deal.dealAmount.toLocaleString()}</Text>
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="home-outline" size={16} color="#666" />
           <Text style={styles.detailText}>{deal.propertyType}</Text>
         </View>
         <View style={styles.detailItem}>
-          <Ionicons name="pricetag-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>{deal.dealRole}</Text>
-        </View>
-        <View style={styles.detailItem}>
           <Ionicons name="calendar-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>{new Date(deal.expectedCloseDate).toLocaleDateString()}</Text>
+          <Text style={styles.detailText}>Expected: {deal.expectedCloseDate}</Text>
         </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="trending-up-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>{(closeProbability * 100).toFixed(0)}%</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="analytics-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>${forecastValue.toLocaleString()}</Text>
-        </View>
+        {deal.actualCloseDate && (
+          <View style={styles.detailItem}>
+            <Ionicons name="checkmark-circle-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>Closed: {formatDate(deal.actualCloseDate)}</Text>
+          </View>
+        )}
+        {deal.commissionRate && (
+          <View style={styles.detailItem}>
+            <Ionicons name="trending-up-outline" size={16} color="#666" />
+            <Text style={styles.detailText}>{deal.commissionRate}% Commission</Text>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity onPress={() => setShowNotesTimeline(true)} style={styles.notesSection}>
-        <Text style={styles.notesTitle}>Notes ({deal.notes.length})</Text>
-        {deal.notes.length > 0 && (
+        <Text style={styles.notesTitle}>Notes ({deal.notes?.length || 0})</Text>
+        {deal.notes && deal.notes.length > 0 && (
           <Text style={styles.latestNote} numberOfLines={2}>
             Latest: {deal.notes[deal.notes.length - 1].content}
           </Text>
@@ -110,14 +111,38 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
 
       <View style={styles.footer}>
         <Text style={styles.date}>
-          Created: {new Date(deal.createdAt).toLocaleDateString()}
+          Created: {formatDate(deal.createdAt)}
         </Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={onEdit} style={styles.actionButton}>
-            <Ionicons name="create-outline" size={20} color="#666" />
+          <TouchableOpacity 
+            onPress={onViewCoOwners} 
+            style={styles.actionButton}
+          >
+            <Ionicons 
+              name="people-outline" 
+              size={20} 
+              color="#666" 
+            />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={styles.actionButton}>
-            <Ionicons name="trash-outline" size={20} color="#FF4B4B" />
+          <TouchableOpacity 
+            onPress={onEdit} 
+            style={styles.actionButton}
+          >
+            <Ionicons 
+              name="create-outline" 
+              size={20} 
+              color="#666" 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={onDelete} 
+            style={styles.actionButton}
+          >
+            <Ionicons 
+              name="trash-outline" 
+              size={20} 
+              color="#FF4B4B" 
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -131,7 +156,17 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <NotesTimeline 
-              notes={deal.notes} 
+              leadId={deal.id}
+              notes={deal.notes?.map(n => ({
+                id: n.id,
+                note: n.content,
+                time: n.timestamp
+              })) || []} 
+              onNoteAdded={(updatedDeal) => {
+                if ('source' in updatedDeal) {
+                  onNoteAdded(updatedDeal as unknown as Deal);
+                }
+              }}
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>
@@ -143,15 +178,17 @@ export function DealListItem({ deal, onEdit, onDelete, onStatusChange }: DealLis
 
 function getStatusColor(status: Deal['status']): string {
   switch (status) {
-    case 'New':
+    case 'NEW':
       return '#E3F2FD';
-    case 'Discovery':
+    case 'DISCOVERY':
       return '#FFF3E0';
-    case 'Proposal':
+    case 'PROPOSAL':
       return '#E8F5E9';
-    case 'Negotiation':
+    case 'NEGOTIATION':
       return '#FFF9C4';
-    case 'Won':
+    case 'UNDER_CONTRACT':
+      return '#E0F2F1';
+    case 'WON':
       return '#E0F2F1';
     default:
       return '#F5F5F5';

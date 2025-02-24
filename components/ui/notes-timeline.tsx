@@ -5,12 +5,12 @@ import { Button } from './button';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/utils/api-client';
 import type { NoteEntry, Lead } from '@/types/lead';
-
+import type { Deal } from '@/types/deal';
 interface NotesTimelineProps {
   leadId: string;
   notes: NoteEntry[];
   onClose: () => void;
-  onNoteAdded: (updatedLead: Lead) => void;
+  onNoteAdded: (updatedLead: Lead | Deal) => void;
 }
 
 export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTimelineProps) {

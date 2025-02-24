@@ -6,172 +6,185 @@ import { Select } from './select';
 import { CountryCodeDropdown } from './country-code-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import type { Deal, DealRole, DealStatus, NoteEntry } from '@/types/deal';
+import type { Deal, DealStatus, PropertyType, DealRole, DealInput } from '@/types/deal';
+import { format } from 'date-fns';
 
 interface DealFormProps {
   initialData?: Partial<Deal>;
-  onSubmit: (data: Omit<Deal, 'id' | 'createdAt'>) => void;
+  onSubmit: (data: DealInput) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-const STATUS_OPTIONS: DealStatus[] = ['New', 'Discovery', 'Proposal', 'Negotiation', 'Won'];
-const DEAL_ROLE_OPTIONS = ['Rent', 'Sale', 'Buy'];
+const STATUS_OPTIONS: DealStatus[] = ['NEW', 'DISCOVERY', 'PROPOSAL', 'NEGOTIATION', 'UNDER_CONTRACT', 'WON'];
+const PROPERTY_TYPE_OPTIONS: PropertyType[] = ['RESIDENTIAL', 'LAND', 'COMMERCIAL'];
+const DEAL_ROLE_OPTIONS: DealRole[] = ['Sale', 'Buy', 'Rent'];
 
 export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFormProps) {
-  const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    email: initialData?.email || '',
-    countryCode: initialData?.phone?.split(' ')[0] || '+1',
-    phone: initialData?.phone?.split(' ')[1] || '',
-    status: initialData?.status || 'New' as DealStatus,
-    dealRole: initialData?.dealRole || 'Sale',
-    amount: initialData?.amount?.toString() || '',
-    propertyType: initialData?.propertyType || '',
-    expectedCloseDate: initialData?.expectedCloseDate ? new Date(initialData.expectedCloseDate) : new Date(),
-    notes: initialData?.notes || [],
-  });
-  const [newNote, setNewNote] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const handleSubmit = () => {
-    const updatedNotes: NoteEntry[] = newNote
-      ? [...formData.notes, { id: Date.now().toString(), content: newNote, timestamp: new Date().toISOString() }]
-      : formData.notes;
-    onSubmit({
-      ...formData,
-      phone: `${formData.countryCode} ${formData.phone}`,
-      amount: parseFloat(formData.amount),
-      expectedCloseDate: formData.expectedCloseDate.toISOString(),
-      notes: updatedNotes,
-    });
+  const splitPhoneNumber = (phone: string = '') => {
+    const match = phone.match(/^(\+\d{1,4})?(.*)$/);
+    return {
+      countryCode: match?.[1] || '+1',
+      number: match?.[2]?.trim() || ''
+    };
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || formData.expectedCloseDate;
-    setShowDatePicker(false);
-    setFormData(prev => ({ ...prev, expectedCloseDate: currentDate }));
+  const initialPhone = splitPhoneNumber(initialData?.phone);
+  const [showExpectedDatePicker, setShowExpectedDatePicker] = useState(false);
+  const [showActualDatePicker, setShowActualDatePicker] = useState(false);
+
+  const [formData, setFormData] = useState<DealInput & { countryCode: string }>({
+    name: initialData?.name || '',
+    email: initialData?.email || '',
+    phone: initialPhone.number,
+    countryCode: initialPhone.countryCode,
+    dealAmount: initialData?.dealAmount || 0,
+    status: initialData?.status || 'NEW',
+    propertyType: initialData?.propertyType || 'RESIDENTIAL',
+    propertyAddress: initialData?.propertyAddress || '',
+    propertyValue: initialData?.propertyValue || 0,
+    expectedCloseDate: initialData?.expectedCloseDate || new Date().toISOString(),
+    actualCloseDate: initialData?.actualCloseDate,
+    commissionRate: initialData?.commissionRate || 0,
+    estimatedCommission: initialData?.estimatedCommission || 0,
+    notes: initialData?.notes || [],
+    coOwners: initialData?.coOwners || [],
+  });
+
+  const handleSubmit = () => {
+    const submissionData = {
+      ...formData,
+      phone: `${formData.countryCode}${formData.phone}`.trim(),
+    };
+    delete (submissionData as any).countryCode;
+    console.log('Submitting deal:', submissionData);
+    onSubmit(submissionData);
   };
 
   return (
     <Card style={styles.card}>
-      <ScrollView>
-        <View style={styles.field}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.name}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
-            placeholder="Enter name"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.email}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
-            placeholder="Enter email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Phone</Text>
-          <View style={styles.phoneContainer}>
-            <CountryCodeDropdown
-              value={formData.countryCode}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, countryCode: value }))}
-            />
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.field}>
+            <Text style={styles.label}>Name *</Text>
             <TextInput
-              style={[styles.input, styles.phoneInput]}
-              value={formData.phone}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, phone: text }))}
-              placeholder="Enter phone number"
-              keyboardType="phone-pad"
+              style={styles.input}
+              value={formData.name}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+              placeholder="Enter name"
             />
           </View>
-        </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Deal Amount</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.amount}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, amount: text }))}
-            placeholder="Enter deal amount"
-            keyboardType="numeric"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Property Type</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.propertyType}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, propertyType: text }))}
-            placeholder="Enter property type"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Deal Role</Text>
-          <Select
-            value={formData.dealRole}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, dealRole: value as DealRole }))}
-            options={DEAL_ROLE_OPTIONS.map((role) => ({
-              label: role,
-              value: role,
-            }))}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Expected Close Date</Text>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
-            <Text style={styles.datePickerButtonText}>
-              {formData.expectedCloseDate.toLocaleDateString()}
-            </Text>
-            <Ionicons name="calendar-outline" size={24} color="#5932EA" />
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={formData.expectedCloseDate}
-              mode="date"
-              is24Hour={true}
-              display="default"
-              onChange={onDateChange}
-              minimumDate={new Date()}
+          <View style={styles.field}>
+            <Text style={styles.label}>Email *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.email}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
+              placeholder="Enter email"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
-          )}
-        </View>
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Status</Text>
-          <Select
-            value={formData.status}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as DealStatus }))}
-            options={STATUS_OPTIONS.map((status) => ({
-              label: status,
-              value: status,
-            }))}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone</Text>
+            <View style={styles.phoneContainer}>
+              <CountryCodeDropdown
+                value={formData.countryCode}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, countryCode: value }))}
+              />
+              <TextInput
+                style={[styles.input, styles.phoneInput]}
+                value={formData.phone}
+                onChangeText={(text) => setFormData((prev) => ({ ...prev, phone: text }))}
+                placeholder="Enter phone number"
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Add Note</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={newNote}
-            onChangeText={setNewNote}
-            placeholder="Enter new note"
-            multiline
-            numberOfLines={4}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Deal Amount *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.dealAmount.toString()}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, dealAmount: parseFloat(text) || 0 }))}
+              placeholder="Enter deal amount"
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Property Type *</Text>
+            <Select
+              value={formData.propertyType}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, propertyType: value as PropertyType }))}
+              options={PROPERTY_TYPE_OPTIONS.map((type) => ({
+                label: type,
+                value: type,
+              }))}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Property Address</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.propertyAddress}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, propertyAddress: text }))}
+              placeholder="Enter property address"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Property Value</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.propertyValue?.toString()}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, propertyValue: parseFloat(text) || 0 }))}
+              placeholder="Enter property value"
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Expected Close Date *</Text>
+            <TouchableOpacity
+              onPress={() => setShowExpectedDatePicker(true)}
+              style={styles.dateButton}
+            >
+              <Text style={styles.dateButtonText}>
+                {formData.expectedCloseDate}
+              </Text>
+              <Ionicons name="calendar-outline" size={24} color="#5932EA" />
+            </TouchableOpacity>
+            {showExpectedDatePicker && (
+              <DateTimePicker
+                value={formData.expectedCloseDate ? new Date(formData.expectedCloseDate) : new Date()}
+                mode="date"
+                onChange={(event, date) => {
+                  setShowExpectedDatePicker(false);
+                  if (date) {
+                    setFormData(prev => ({ ...prev, expectedCloseDate: date.toISOString() }));
+                  }
+                }}
+                minimumDate={new Date()}
+              />
+            )}
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Commission Rate (%)</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.commissionRate?.toString()}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, commissionRate: parseFloat(text) || 0 }))}
+              placeholder="Enter commission rate"
+              keyboardType="numeric"
+            />
+          </View>
+        </ScrollView>
 
         <View style={styles.actions}>
           <Button 
@@ -189,7 +202,7 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
             {initialData ? 'Update' : 'Create'} Deal
           </Button>
         </View>
-      </ScrollView>
+      </View>
     </Card>
   );
 }
@@ -197,6 +210,13 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
 const styles = StyleSheet.create({
   card: {
     padding: 16,
+  },
+  container: {
+    height: '100%',
+    flexDirection: 'column',
+  },
+  scrollView: {
+    flex: 1,
   },
   field: {
     marginBottom: 16,
@@ -215,15 +235,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#fff',
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 8,
     marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
   button: {
     minWidth: 100,
@@ -236,7 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  datePickerButton: {
+  dateButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -246,7 +265,7 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#fff',
   },
-  datePickerButtonText: {
+  dateButtonText: {
     fontSize: 16,
     color: '#333',
   },

@@ -8,11 +8,6 @@ export interface NoteEntry {
   timestamp: string;
 }
 
-export interface DealNote {
-  time: string;
-  note: string;
-}
-
 export interface CoOwner {
   name: string;
   email: string;
@@ -34,7 +29,7 @@ export interface Deal {
   actualCloseDate?: string;
   commissionRate?: number;
   estimatedCommission?: number;
-  notes?: DealNote[];
+  notes?: NoteEntry[];
   coOwners?: CoOwner[];
   agent?: {
     id: string;
@@ -60,14 +55,17 @@ export interface DealInput {
   actualCloseDate?: string;
   commissionRate?: number;
   estimatedCommission?: number;
-  notes?: DealNote[];
+  notes?: NoteEntry[];
   coOwners?: CoOwner[];
 }
 
 export interface DealResponse {
-  deals: Deal[];
-  total: number;
-  page: number;
-  limit: number;
+  data: Deal[];
+  meta: {
+    limit: number;
+    page: number;
+    total: number;
+    totalPages: number;
+  };
 }
 

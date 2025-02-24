@@ -1,99 +1,129 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, Modal, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { DealListItem } from '@/components/ui/deal-list-item';
 import { DealForm } from '@/components/ui/deal-form';
-import type { Deal, DealStatus } from '@/types/deal';
-import { AntDesign } from '@expo/vector-icons';
+import { api } from '@/utils/api-client';
+import type { Deal, DealStatus, DealInput, DealResponse, CoOwner } from '@/types/deal';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 
-// API functions (replace with actual API calls)
-const api = {
-  fetchDeals: async (): Promise<Deal[]> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(MOCK_DEALS), 1000);
-    });
-  },
-  createDeal: async (deal: Omit<Deal, 'id' | 'createdAt'>): Promise<Deal> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newDeal: Deal = {
-          ...deal,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-        };
-        resolve(newDeal);
-      }, 1000);
-    });
-  },
-  updateDeal: async (deal: Deal): Promise<Deal> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(deal), 1000);
-    });
-  },
-  deleteDeal: async (id: string): Promise<void> => {
-    // Simulated API call
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
-  },
-};
+interface CoOwnerModalProps {
+  visible: boolean;
+  coOwners: CoOwner[];
+  onClose: () => void;
+}
 
-// Mock data
-const MOCK_DEALS: Deal[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 234567890',
-    status: 'New',
-    amount: 500000,
-    dealRole: 'Sale',
-    propertyType: 'Residential',
-    expectedCloseDate: '2024-03-15T00:00:00Z',
-    notes: [
-      { id: '1', content: 'Initial contact made', timestamp: '2024-01-15T10:00:00Z' },
-    ],
-    createdAt: '2024-01-15T10:00:00Z',
-  },
-  // Add more mock deals as needed
-];
+function CoOwnerModal({ visible, coOwners, onClose }: CoOwnerModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
+        <View style={[styles.modalContent, { padding: 16 }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Co-Owners</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          
+          {coOwners.length === 0 ? (
+            <Text style={styles.emptyStateText}>No co-owners found</Text>
+          ) : (
+            <FlatList
+              data={coOwners}
+              keyExtractor={(item, index) => `${item.email}-${index}`}
+              renderItem={({ item }) => (
+                <View style={styles.coOwnerItem}>
+                  <View style={styles.coOwnerHeader}>
+                    <Ionicons name="person-outline" size={20} color="#666" />
+                    <Text style={styles.coOwnerName}>{item.name}</Text>
+                  </View>
+                  <View style={styles.coOwnerDetails}>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="mail-outline" size={16} color="#666" />
+                      <Text style={styles.detailText}>{item.email}</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="call-outline" size={16} color="#666" />
+                      <Text style={styles.detailText}>{item.phone}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+              contentContainerStyle={styles.coOwnerList}
+            />
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 export default function Deals() {
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [totalDeals, setTotalDeals] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const LIMIT = 10;
+  const [selectedCoOwners, setSelectedCoOwners] = useState<CoOwner[]>([]);
+  const [showCoOwnerModal, setShowCoOwnerModal] = useState(false);
 
   useEffect(() => {
     fetchDeals();
   }, []);
 
-  const fetchDeals = async () => {
-    setIsLoading(true);
+  const fetchDeals = async (refresh = false) => {
     try {
-      const fetchedDeals = await api.fetchDeals();
-      setDeals(fetchedDeals);
+      if (refresh) {
+        setPage(1);
+        setHasMore(true);
+      }
+      setIsLoading(true);
+      const response = await api.getDeals({ 
+        page: refresh ? 1 : page, 
+        limit: LIMIT 
+      });
+      
+      const newDeals = response.data;
+      setTotalDeals(response.meta.total);
+      
+      if (refresh) {
+        setDeals(newDeals);
+      } else {
+        setDeals(prev => [...prev, ...newDeals]);
+      }
+      setHasMore(newDeals.length === LIMIT);
+      
     } catch (error) {
       console.error('Error fetching deals:', error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const filteredDeals = deals.filter(deal => 
-    deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    deal.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    deal.phone.includes(searchQuery)
-  );
-
-  const handleAddDeal = async (data: Omit<Deal, 'id' | 'createdAt'>) => {
-    setIsLoading(true);
+  const handleAddDeal = async (data: DealInput) => {
     try {
-      const newDeal = await api.createDeal(data);
+      setIsLoading(true);
+      const cleanData = {
+        ...data,
+        expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate).toISOString() : undefined,
+        actualCloseDate: data.actualCloseDate ? new Date(data.actualCloseDate).toISOString() : undefined,
+        dealAmount: parseFloat(data.dealAmount.toString()),
+        propertyValue: data.propertyValue ? parseFloat(data.propertyValue.toString()) : undefined,
+        commissionRate: data.commissionRate ? parseFloat(data.commissionRate.toString()) : undefined,
+      };
+
+      const newDeal = await api.createDeal(cleanData);
       setDeals(prev => [newDeal, ...prev]);
       setShowAddModal(false);
     } catch (error) {
@@ -103,11 +133,20 @@ export default function Deals() {
     }
   };
 
-  const handleUpdateDeal = async (data: Omit<Deal, 'id' | 'createdAt'>) => {
+  const handleUpdateDeal = async (data: DealInput) => {
     if (!editingDeal) return;
-    setIsLoading(true);
     try {
-      const updatedDeal = await api.updateDeal({ ...editingDeal, ...data });
+      setIsLoading(true);
+      const cleanData = {
+        ...data,
+        expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate).toISOString() : undefined,
+        actualCloseDate: data.actualCloseDate ? new Date(data.actualCloseDate).toISOString() : undefined,
+        dealAmount: parseFloat(data.dealAmount.toString()),
+        propertyValue: data.propertyValue ? parseFloat(data.propertyValue.toString()) : undefined,
+        commissionRate: data.commissionRate ? parseFloat(data.commissionRate.toString()) : undefined,
+      };
+
+      const updatedDeal = await api.updateDeal(editingDeal.id, cleanData);
       setDeals(prev => prev.map(deal => 
         deal.id === updatedDeal.id ? updatedDeal : deal
       ));
@@ -131,16 +170,13 @@ export default function Deals() {
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: DealStatus) => {
+  const handleStatusChange = async (id: string, status: DealStatus) => {
     setIsLoading(true);
     try {
-      const dealToUpdate = deals.find(deal => deal.id === id);
-      if (dealToUpdate) {
-        const updatedDeal = await api.updateDeal({ ...dealToUpdate, status: newStatus });
-        setDeals(prev => prev.map(deal => 
-          deal.id === updatedDeal.id ? updatedDeal : deal
-        ));
-      }
+      const updatedDeal = await api.updateDealStatus(id, status);
+      setDeals(prev => prev.map(deal => 
+        deal.id === updatedDeal.id ? updatedDeal : deal
+      ));
     } catch (error) {
       console.error('Error updating deal status:', error);
     } finally {
@@ -148,11 +184,58 @@ export default function Deals() {
     }
   };
 
+  const handleAddNote = async (dealId: string, note: string) => {
+    try {
+      const updatedDeal = await api.addDealNote(dealId, note);
+      setDeals(prev => prev.map(deal => 
+        deal.id === updatedDeal.id ? updatedDeal : deal
+      ));
+      return updatedDeal;
+    } catch (error) {
+      console.error('Error adding note:', error);
+      throw error;
+    }
+  };
+
+  const handleViewCoOwners = (coOwners: CoOwner[]) => {
+    setSelectedCoOwners(coOwners);
+    setShowCoOwnerModal(true);
+  };
+
+  const filteredDeals = deals.filter(deal => 
+    deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    deal.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    deal.phone.includes(searchQuery) ||
+    deal.propertyAddress?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleLoadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage(prev => prev + 1);
+      fetchDeals();
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDeals(true);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Deals</Text>
-        <Button style={{backgroundColor: '#5932EA11'}} variant='outline' size='md' onPress={() => setShowAddModal(true)}>
+        <View>
+          <Text style={styles.title}>Deals</Text>
+          <Text style={styles.subtitle}>
+            Found {totalDeals} deals
+          </Text>
+        </View>
+        <Button 
+          style={{backgroundColor: '#5932EA11'}} 
+          variant='outline' 
+          size='md' 
+          onPress={() => setShowAddModal(true)}
+        >
           <View style={styles.addButton}>
             <AntDesign name="adduser" size={20} color="#5932EA" />
             <Text style={styles.buttonText}>Add Deal</Text>
@@ -164,7 +247,7 @@ export default function Deals() {
         style={styles.searchInput}
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholder="Search deals..."
+        placeholder="Search deals by name, email, phone, or address..."
       />
 
       <FlatList
@@ -176,11 +259,29 @@ export default function Deals() {
             onEdit={() => setEditingDeal(item)}
             onDelete={() => handleDeleteDeal(item.id)}
             onStatusChange={handleStatusChange}
+            onNoteAdded={async () => {await fetchDeals()}}
+            onViewCoOwners={() => handleViewCoOwners(item.coOwners || [])}
           />
         )}
         contentContainerStyle={styles.list}
-        refreshing={isLoading}
-        onRefresh={fetchDeals}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              {searchQuery 
+                ? 'No deals found matching your search'
+                : 'No deals found. Add your first deal!'}
+            </Text>
+          </View>
+        }
+        ListFooterComponent={
+          isLoading && !refreshing ? (
+            <ActivityIndicator size="small" color="#5932EA" style={styles.loader} />
+          ) : null
+        }
       />
 
       <Modal
@@ -202,6 +303,12 @@ export default function Deals() {
           </View>
         </View>
       </Modal>
+
+      <CoOwnerModal
+        visible={showCoOwnerModal}
+        coOwners={selectedCoOwners}
+        onClose={() => setShowCoOwnerModal(false)}
+      />
     </View>
   );
 }
@@ -214,7 +321,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 20,
   },
   title: {
@@ -222,8 +329,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    color: '#5932EA',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   searchInput: {
-    margin: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
     padding: 12,
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -245,16 +367,66 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     maxHeight: '80%',
   },
-  addButton: {
+  emptyState: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  loader: {
+    marginVertical: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  coOwnerList: {
+    flexGrow: 1,
+  },
+  coOwnerItem: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  coOwnerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
+    marginBottom: 12,
   },
-  buttonText: {
-    color: '#5932EA',
-    fontWeight: '500',
-    marginLeft: 6,
+  coOwnerName: {
     fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginLeft: 8,
+  },
+  coOwnerDetails: {
+    marginLeft: 28,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
   },
 });
 
