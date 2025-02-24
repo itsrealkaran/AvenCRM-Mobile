@@ -317,7 +317,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   searchInput: {
-    margin: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
     padding: 12,
     backgroundColor: '#fff',
     borderRadius: 8,

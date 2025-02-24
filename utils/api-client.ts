@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PropertyResponse } from '@/types/property';
 import type { Lead, LeadResponse, LeadInput, LeadStatus, LeadTransfer, LeadInputPayload } from '@/types/lead';
+import type { Notification, NotificationResponse } from '@/types/notification';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://backend.avencrm.com';
@@ -266,7 +267,48 @@ class ApiClient {
     }
   }
 
-  // Add more API methods as needed, following the same pattern
+  // Notification endpoints
+  async getNotifications(): Promise<NotificationResponse> {
+    try {
+      const response = await this.api.get('/notification');
+      console.log('[API] Get notifications response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching notifications:', error);
+      throw error;
+    }
+  }
+
+  async getNotificationCount(): Promise<number> {
+    try {
+      const response = await this.api.get('/notifications/count');
+      console.log('[API] Get notification count response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching notification count:', error);
+      throw error;
+    }
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    try {
+      const response = await this.api.post(`/notifications/read/${notificationId}`);
+      console.log('[API] Mark notification as read response:', response.data);
+    } catch (error) {
+      console.error('[API] Error marking notification as read:', error);
+      throw error;
+    }
+  }
+
+  async markAllNotificationsAsRead(): Promise<void> {
+    try {
+      const response = await this.api.put('/notifications/mark-all-read');
+      console.log('[API] Mark all notifications as read response:', response.data);
+    } catch (error) {
+      console.error('[API] Error marking all notifications as read:', error);
+      throw error;
+    }
+  }
 }
 
 export const api = new ApiClient();

@@ -6,7 +6,7 @@ import Sidebar from '@/components/sidebar';
 import { Redirect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
-
+import { NotificationListener } from '@/components/notification-listener';
 export default function DashboardLayout() {
   const { isAuthenticated } = useAuth();
 
@@ -16,6 +16,7 @@ export default function DashboardLayout() {
 
   return (
       <>
+        <NotificationListener />
         <Drawer
           drawerContent={(props: DrawerContentComponentProps) => <Sidebar {...props} />}
           screenOptions={({ navigation }) => ({
