@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { MetricCard } from '@/components/ui/metric-card';
 import { PerformanceChart } from '@/components/ui/performance-chart';
-import { TaskList } from '@/components/ui/task-list';
 import { useAuth } from '@/contexts/auth-context';
 import { api } from '@/utils/api-client';
 

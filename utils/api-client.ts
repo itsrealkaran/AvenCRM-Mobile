@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PropertyResponse } from '@/types/property';
 import type { Lead, LeadResponse, LeadStatus, LeadTransfer, LeadInputPayload } from '@/types/lead';
 import type { Deal, DealInput, DealResponse, DealStatus } from '@/types/deal';
-
+import type { TransactionResponse } from '@/types/transactions';
 import type { Notification, NotificationResponse } from '@/types/notification';
 
 // const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
@@ -410,7 +410,20 @@ class ApiClient {
       throw error;
     }
   }
+
+  // Transactions endpoints
+  async getTransactions(): Promise<TransactionResponse> {
+    try {
+      const response = await this.api.get('/transactions');
+      console.log('[API] Get transactions response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching transactions:', error);
+      throw error;
+    }
+  }
 }
+
 
 export const api = new ApiClient();
 

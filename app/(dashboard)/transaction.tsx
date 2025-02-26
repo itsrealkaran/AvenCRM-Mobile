@@ -2,9 +2,9 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { Card } from '@/components/ui/card';
 
 const DUMMY_TRANSACTIONS = [
-  { id: '1', type: 'Sale', amount: '$450,000', date: '2024-01-15', status: 'Completed' },
-  { id: '2', type: 'Lease', amount: '$12,000', date: '2024-01-14', status: 'Pending' },
-  { id: '3', type: 'Deposit', amount: '$5,000', date: '2024-01-13', status: 'Completed' },
+  { id: '1', invoiceNumber: 'INV-2024-001', transaction_method: 'Sale', amount: '$450,000', date: '2024-01-15', status: 'Completed' },
+  { id: '2', invoiceNumber: 'INV-2024-002', transaction_method: 'Lease', amount: '$12,000', date: '2024-01-14', status: 'Pending' },
+  { id: '3', invoiceNumber: 'INV-2024-003', transaction_method: 'Deposit', amount: '$5,000', date: '2024-01-13', status: 'Completed' },
 ];
 
 export default function Transaction() {
@@ -19,17 +19,35 @@ export default function Transaction() {
         renderItem={({ item }) => (
           <Card style={styles.transactionCard}>
             <View style={styles.transactionHeader}>
-              <Text style={styles.transactionType}>{item.type}</Text>
-              <Text style={styles.transactionAmount}>{item.amount}</Text>
+              <View>
+                <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
+                <Text style={styles.transactionType}>{item.transaction_method}</Text>
+              </View>
+              <View style={styles.amountContainer}>
+                <Text style={styles.amountLabel}>Amount</Text>
+                <Text style={styles.transactionAmount}>{item.amount}</Text>
+              </View>
             </View>
+            <View style={styles.divider} />
             <View style={styles.transactionDetails}>
-              <Text style={styles.transactionDate}>{item.date}</Text>
-              <Text style={[
-                styles.transactionStatus,
-                { color: item.status === 'Completed' ? '#4CAF50' : '#FFC107' }
-              ]}>
-                {item.status}
-              </Text>
+              <View style={styles.dateContainer}>
+                <Text style={styles.label}>Date</Text>
+                <Text style={styles.transactionDate}>{item.date}</Text>
+              </View>
+              <View style={styles.statusContainer}>
+                <Text style={styles.label}>Status</Text>
+                <View style={[
+                  styles.statusBadge,
+                  { backgroundColor: item.status === 'Completed' ? '#E7F6EC' : '#FFF6E5' }
+                ]}>
+                  <Text style={[
+                    styles.transactionStatus,
+                    { color: item.status === 'Completed' ? '#2E7D32' : '#ED6C02' }
+                  ]}>
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
             </View>
           </Card>
         )}
@@ -55,34 +73,72 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   transactionCard: {
-    padding: 15,
-    marginBottom: 10,
+    padding: 16,
+    marginBottom: 12,
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 12,
   },
   transactionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  invoiceNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 4,
   },
   transactionType: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#666',
+  },
+  amountContainer: {
+    alignItems: 'flex-end',
+  },
+  amountLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#6C5CE7',
+    color: '#2E7D32',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginBottom: 16,
   },
   transactionDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  transactionDate: {
+  dateContainer: {
+    flex: 1,
+  },
+  statusContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  label: {
+    fontSize: 12,
     color: '#666',
+    marginBottom: 4,
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: '#1A1A1A',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
   },
   transactionStatus: {
+    fontSize: 14,
     fontWeight: '500',
   },
 });
-
