@@ -1,27 +1,109 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
 import { Card } from '@/components/ui/card';
+import { api } from '@/utils/api-client';
+import type { Transaction, TransactionStatus, ApprovalStatus } from '@/types/transactions';
 
-const DUMMY_TRANSACTIONS = [
-  { id: '1', invoiceNumber: 'INV-2024-001', transaction_method: 'Sale', amount: '$450,000', date: '2024-01-15', status: 'Completed' },
-  { id: '2', invoiceNumber: 'INV-2024-002', transaction_method: 'Lease', amount: '$12,000', date: '2024-01-14', status: 'Pending' },
-  { id: '3', invoiceNumber: 'INV-2024-003', transaction_method: 'Deposit', amount: '$5,000', date: '2024-01-13', status: 'Completed' },
-];
+const getTransactionStatus = (status: TransactionStatus, isApprovedByTeamLeader: ApprovalStatus): string => {
+  if (status === 'REJECTED' && isApprovedByTeamLeader === 'REJECTED') return 'Rejected';
+  if (status === 'APPROVED' && isApprovedByTeamLeader === 'APPROVED') return 'Verified';
+  if (isApprovedByTeamLeader === 'APPROVED') return 'Approved';
+  if (status === 'PENDING' && isApprovedByTeamLeader === 'PENDING') return 'Pending';
+  return 'Pending';
+};
 
-export default function Transaction() {
+interface TransactionItem {
+  id: string;
+  invoiceNumber: string;
+  transaction_method: string;
+  amount: string;
+  date: string;
+  status: string;
+}
+
+export default function Transactions() {
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<TransactionItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  useEffect(() => {
+    const filtered = transactions.filter(transaction => 
+      transaction.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.transaction_method.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.amount.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.status.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredTransactions(filtered);
+  }, [searchQuery, transactions]);
+
+  const fetchTransactions = async (refresh = false) => {
+    try {
+      setIsLoading(true);
+      const response = await api.getTransactions();
+      console.log("response:",response);
+      if (response) {
+        const formattedTransactions = response.map((item: Transaction) => ({
+          id: item.id,
+          invoiceNumber: item.invoiceNumber,
+          transaction_method: item.transactionMethod || 'N/A',
+          amount: `$${item.amount.toLocaleString()}`,
+          date: new Date(item.date).toLocaleDateString(),
+          status: getTransactionStatus(item.status, item.isApprovedByTeamLeader)
+        }));
+        setTransactions(formattedTransactions);
+        setFilteredTransactions(formattedTransactions);
+        console.log("formattedTransactions:",formattedTransactions);
+      } else {
+        setTransactions([]);
+        setFilteredTransactions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setTransactions([]);
+      setFilteredTransactions([]);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  if (isLoading && !refreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#5932EA" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Transactions</Text>
+        <Text style={styles.subtitle}>Found {filteredTransactions.length} transactions</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search transactions..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#666"
+        />
       </View>
+
       <FlatList
-        data={DUMMY_TRANSACTIONS}
+        data={filteredTransactions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Card style={styles.transactionCard}>
             <View style={styles.transactionHeader}>
               <View>
                 <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
-                <Text style={styles.transactionType}>{item.transaction_method}</Text>
+                <Text style={styles.transactionType}>{item.transaction_method.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}</Text>
               </View>
               <View style={styles.amountContainer}>
                 <Text style={styles.amountLabel}>Amount</Text>
@@ -38,11 +120,19 @@ export default function Transaction() {
                 <Text style={styles.label}>Status</Text>
                 <View style={[
                   styles.statusBadge,
-                  { backgroundColor: item.status === 'Completed' ? '#E7F6EC' : '#FFF6E5' }
+                  { backgroundColor: 
+                    item.status === 'Verified' ? '#E7F6EC' :
+                    item.status === 'Approved' ? '#E3F2FD' :
+                    item.status === 'Rejected' ? '#FFEBEE' : '#FFF6E5' 
+                  }
                 ]}>
                   <Text style={[
                     styles.transactionStatus,
-                    { color: item.status === 'Completed' ? '#2E7D32' : '#ED6C02' }
+                    { color: 
+                      item.status === 'Verified' ? '#2E7D32' :
+                      item.status === 'Approved' ? '#1976D2' :
+                      item.status === 'Rejected' ? '#D32F2F' : '#ED6C02'
+                    }
                   ]}>
                     {item.status}
                   </Text>
@@ -52,6 +142,11 @@ export default function Transaction() {
           </Card>
         )}
         contentContainerStyle={styles.list}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRefreshing(true);
+          fetchTransactions(true);
+        }}
       />
     </View>
   );
@@ -60,7 +155,12 @@ export default function Transaction() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FAFBFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     padding: 20,
@@ -68,25 +168,44 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  searchInput: {
+    backgroundColor: 'white',
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    fontSize: 16,
   },
   list: {
-    padding: 20,
+    padding: 16,
   },
   transactionCard: {
     padding: 16,
     marginBottom: 12,
     backgroundColor: 'white',
     borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   transactionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
   },
   invoiceNumber: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#1A1A1A',
     marginBottom: 4,
   },
@@ -104,17 +223,18 @@ const styles = StyleSheet.create({
   },
   transactionAmount: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#2E7D32',
   },
   divider: {
     height: 1,
     backgroundColor: '#E0E0E0',
-    marginBottom: 16,
+    marginVertical: 16,
   },
   transactionDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   dateContainer: {
     flex: 1,
@@ -134,7 +254,7 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 16,
   },
   transactionStatus: {

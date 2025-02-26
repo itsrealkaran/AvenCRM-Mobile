@@ -32,7 +32,7 @@ export default function DashboardLayout() {
           <Drawer.Screen name="page-builder" options={{ title: 'Page Builder' }} />
           <Drawer.Screen name="leads" options={{ title: 'Leads' }} />
           <Drawer.Screen name="deals" options={{ title: 'Deals' }} />
-          <Drawer.Screen name="transaction" options={{ title: 'Transaction' }} />
+          <Drawer.Screen name="transactions" options={{ title: 'Transaction' }} />
           <Drawer.Screen name="monitoring" options={{ title: 'Monitoring' }} />
           <Drawer.Screen name="calendar" options={{ title: 'Calendar' }} />
           <Drawer.Screen name="settings" options={{ title: 'Settings' }} />

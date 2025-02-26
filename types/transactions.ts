@@ -6,7 +6,7 @@ interface Agent {
 
 export type TransactionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type TransactionMethod = 'BANK_TRANSFER' | 'CASH' | 'CHECK' ;
+export type TransactionMethod = 'BANK_TRANSFER' | 'CASH' | 'CHECK' | '' ;
 
 export interface Transaction {
   id: string;
@@ -24,14 +24,4 @@ export interface Transaction {
   companyId: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface TransactionResponse {
-  data: Transaction[];
-  meta?: {
-    limit: number;
-    page: number;
-    total: number;
-    totalPages: number;
-  };
 }
