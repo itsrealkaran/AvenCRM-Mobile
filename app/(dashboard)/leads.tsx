@@ -67,8 +67,6 @@ export default function Leads() {
   const handleAddLead = async (data: LeadInput) => {
     try {
       setIsLoading(true);
-      
-      // Create FormData and clean up the data
       const formData = new FormData();
       const cleanData = {
         ...data,
@@ -132,11 +130,13 @@ export default function Leads() {
   const handleTransfer = async (data: LeadTransfer) => {
     try {
       setIsLoading(true);
+      console.log(data);
       await api.convertToDeal({
         leadId: data.leadId,
         dealAmount: data.dealAmount,
         expectedCloseDate: data.expectedCloseDate
       });
+      console.log(data);
       setLeads(prev => prev.filter(lead => lead.id !== data.leadId));
       setShowTransferModal(false);
       setSelectedLeadId(null);

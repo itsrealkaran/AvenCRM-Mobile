@@ -24,6 +24,8 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
     setShowStatusDropdown(false);
   };
 
+  const isWonLead = lead.status === 'WON';
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
@@ -90,12 +92,25 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
           Created: {new Date(lead.createdAt).toLocaleDateString()}
         </Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={onTransfer} style={styles.actionButton}>
-            <Ionicons name="arrow-forward-circle-outline" size={20} color="#5932EA" />
+          <TouchableOpacity 
+            onPress={onTransfer} 
+            style={[
+              styles.actionButton, 
+              isWonLead && styles.disabledButton
+            ]} 
+            disabled={isWonLead}
+          >
+            <Ionicons 
+              name="swap-horizontal-outline" 
+              size={20} 
+              color={isWonLead ? "#ccc" : "#666"} 
+            />
           </TouchableOpacity>
+          
           <TouchableOpacity onPress={onEdit} style={styles.actionButton}>
             <Ionicons name="create-outline" size={20} color="#666" />
           </TouchableOpacity>
+          
           <TouchableOpacity onPress={onDelete} style={styles.actionButton}>
             <Ionicons name="trash-outline" size={20} color="#FF4B4B" />
           </TouchableOpacity>
@@ -236,5 +251,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 8,
     width: '90%',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });

@@ -21,7 +21,7 @@ export function LeadTransferForm({ leadId, onSubmit, onCancel, isLoading }: Lead
   const handleSubmit = () => {
     onSubmit({
       leadId,
-      amount: parseFloat(amount),
+      dealAmount: parseFloat(amount),
       expectedCloseDate: expectedCloseDate.toISOString(),
     });
   };
