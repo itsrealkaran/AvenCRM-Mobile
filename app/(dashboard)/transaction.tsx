@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, TextInput } from '
 import { Card } from '@/components/ui/card';
 import { api } from '@/utils/api-client';
 import type { Transaction, TransactionStatus, ApprovalStatus } from '@/types/transactions';
+import { AntDesign } from '@expo/vector-icons';
 
 const getTransactionStatus = (status: TransactionStatus, isApprovedByTeamLeader: ApprovalStatus): string => {
   if (status === 'REJECTED' && isApprovedByTeamLeader === 'REJECTED') return 'Rejected';
@@ -84,15 +85,23 @@ export default function Transactions() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Transactions</Text>
-        <Text style={styles.subtitle}>Found {filteredTransactions.length} transactions</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search transactions..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor="#666"
-        />
+        <View>
+          <Text style={styles.title}>Transactions</Text>
+          <Text style={styles.subtitle}>
+            Found {filteredTransactions.length} transactions
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchWrapper}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by invoice number, amount, or status..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
       <FlatList
@@ -175,14 +184,23 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  searchInput: {
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'white',
-    marginTop: 12,
-    padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    fontSize: 16,
+    borderColor: '#ddd',
+    paddingHorizontal: 12,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    color: '#333',
   },
   list: {
     padding: 16,
