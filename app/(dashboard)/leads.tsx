@@ -24,7 +24,7 @@ export default function Leads() {
 
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [page]); 
 
   const fetchLeads = async (refresh = false) => {
     try {
@@ -32,6 +32,9 @@ export default function Leads() {
         setPage(1);
         setHasMore(true);
       }
+      
+      if (isLoading) return;
+      
       setIsLoading(true);
       const response = await api.getLeads({ 
         page: refresh ? 1 : page, 
@@ -44,7 +47,12 @@ export default function Leads() {
       if (refresh) {
         setLeads(newLeads);
       } else {
-        setLeads(prev => [...prev, ...newLeads]);
+        // Check for duplicates before adding new leads
+        setLeads(prev => {
+          const existingIds = new Set(prev.map(lead => lead.id));
+          const uniqueNewLeads = newLeads.filter(lead => !existingIds.has(lead.id));
+          return [...prev, ...uniqueNewLeads];
+        });
       }
       setHasMore(newLeads.length === LIMIT);
       
@@ -86,7 +94,6 @@ export default function Leads() {
     try {
       setIsLoading(true);
       
-      // Create FormData and clean up the data
       const formData = new FormData();
       const cleanData = {
         ...data,
@@ -169,7 +176,6 @@ export default function Leads() {
   const handleLoadMore = () => {
     if (!isLoading && hasMore) {
       setPage(prev => prev + 1);
-      fetchLeads();
     }
   };
 
@@ -354,4 +360,3 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 });
-
