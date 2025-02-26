@@ -52,6 +52,7 @@ export default function Property() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Properties</Text>
+        <Text style={styles.subtitle}>Found {displayProperties.length} properties</Text>
         <View style={styles.tabContainer}>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'my' && styles.activeTab]}
@@ -103,6 +104,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
     marginBottom: 16,
   },
   tabContainer: {
