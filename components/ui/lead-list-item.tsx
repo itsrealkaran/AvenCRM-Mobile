@@ -31,14 +31,15 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
       <View style={styles.header}>
           <Text style={styles.name}>{lead.name}</Text>
         <TouchableOpacity
-          onPress={() => setShowStatusDropdown(!showStatusDropdown)}
+          onPress={() => !isWonLead && setShowStatusDropdown(!showStatusDropdown)}
           style={[styles.status, { backgroundColor: getStatusColor(lead.status) }]}
+          disabled={isWonLead}
         >
           <Text style={styles.statusText}>{lead.status}</Text>
         </TouchableOpacity>
       </View>
 
-      {showStatusDropdown && (
+      {showStatusDropdown && !isWonLead && (
         <View style={styles.statusDropdown}>
           <Select
             value={lead.status}
