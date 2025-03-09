@@ -147,6 +147,7 @@ export default function Deals() {
       setIsLoading(true);
       const cleanData = {
         ...data,
+        id: editingDeal.id,
         expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate).toISOString() : undefined,
         actualCloseDate: data.actualCloseDate ? new Date(data.actualCloseDate).toISOString() : undefined,
         dealAmount: parseFloat(data.dealAmount.toString()),
