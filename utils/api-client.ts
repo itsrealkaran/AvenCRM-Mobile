@@ -179,6 +179,7 @@ class ApiClient {
       };
 
       formData.append('data', JSON.stringify(cleanData));
+      console.log('[API] Update lead data:', cleanData);
 
       const response = await this.api.put(`/leads/${id}`, formData, {
         headers: {
@@ -238,25 +239,25 @@ class ApiClient {
     }
   }
 
-  async convertToDeal(data: LeadTransfer): Promise<{ deal: any; message: string }> {
-    try {
-      const response = await this.api.post('/leads/convert', {
-        ...data,
-        expectedCloseDate: data.expectedCloseDate 
-          ? new Date(data.expectedCloseDate).toISOString() 
-          : undefined,
-      });
-      console.log('[API] Convert to deal response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('[API] Error converting lead to deal:', error);
-      throw error;
-    }
-  }
+  // async convertToDeal(data: LeadTransfer): Promise<{ deal: any; message: string }> {
+  //   try {
+  //     const response = await this.api.post('/leads/convert', {
+  //       ...data,
+  //       expectedCloseDate: data.expectedCloseDate 
+  //         ? new Date(data.expectedCloseDate).toISOString() 
+  //         : undefined,
+  //     });
+  //     console.log('[API] Convert to deal response:', response.data);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('[API] Error converting lead to deal:', error);
+  //     throw error;
+  //   }
+  // }
 
-  async addNote(id: string, note: string): Promise<Lead> {
+  async addNote(id: string, note: object): Promise<Lead> {
     try {
-      const response = await this.api.post(`/leads/${id}/notes`, { note });
+      const response = await this.api.post(`/leads/${id}/notes`, note);
       console.log('[API] Add note response:', response.data);
       return response.data;
     } catch (error) {
@@ -419,6 +420,46 @@ class ApiClient {
       return response.data;
     } catch (error) {
       console.error('[API] Error fetching transactions:', error);
+      throw error;
+    }
+  }
+
+  // Add this method to the ApiClient class
+  async convertToDeal(data: LeadTransfer): Promise<{ deal: Deal; message: string }> {
+    try {
+      const response = await this.api.post('/leads/convert', {
+        leadId: data.leadId,
+        dealAmount: data.dealAmount ? parseFloat(data.dealAmount.toString()) : 0,
+        expectedCloseDate: data.expectedCloseDate 
+          ? new Date(data.expectedCloseDate).toISOString() 
+          : new Date().toISOString(),
+      });
+      console.log('[API] Convert to deal response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error converting lead to deal:', error);
+      throw error;
+    }
+  }
+
+  // Add these methods for currency support
+  async getCurrency(): Promise<{ currency: string }> {
+    try {
+      const response = await this.api.get('/auth/currency');
+      console.log('[API] Get currency response:', response.data);
+      return { currency: response.data.currency || 'USD' };
+    } catch (error) {
+      console.error('[API] Error getting currency:', error);
+      return { currency: 'USD' }; // Default to USD
+    }
+  }
+
+  async setCurrency(currencyCode: string): Promise<void> {
+    try {
+      await this.api.post('/user/settings/currency', { currency: currencyCode });
+      console.log('[API] Currency updated successfully');
+    } catch (error) {
+      console.error('[API] Error setting currency:', error);
       throw error;
     }
   }

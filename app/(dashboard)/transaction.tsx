@@ -3,7 +3,6 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, TextInput } from '
 import { Card } from '@/components/ui/card';
 import { api } from '@/utils/api-client';
 import type { Transaction, TransactionStatus, ApprovalStatus } from '@/types/transactions';
-import { AntDesign } from '@expo/vector-icons';
 
 const getTransactionStatus = (status: TransactionStatus, isApprovedByTeamLeader: ApprovalStatus): string => {
   if (status === 'REJECTED' && isApprovedByTeamLeader === 'REJECTED') return 'Rejected';
@@ -74,14 +73,6 @@ export default function Transactions() {
     }
   };
 
-  if (isLoading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#5932EA" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -103,6 +94,8 @@ export default function Transactions() {
           />
         </View>
       </View>
+
+      {isLoading && !refreshing && <ActivityIndicator size="large" color="#5932EA" />}
 
       <FlatList
         data={filteredTransactions}

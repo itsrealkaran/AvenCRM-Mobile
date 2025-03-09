@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { LeadListItem } from '@/components/ui/lead-list-item';
 import { LeadForm } from '@/components/ui/lead-form';
 import { LeadTransferForm } from '@/components/ui/lead-transfer-form';
-import type { Lead, LeadInput, LeadStatus, LeadTransfer, LeadFormData } from '@/types/lead';
+import type { Lead, LeadInput, LeadStatus, LeadTransfer} from '@/types/lead';
 import { AntDesign } from '@expo/vector-icons';
 import { api } from '@/utils/api-client';
 
@@ -72,7 +72,7 @@ export default function Leads() {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
-        notes: [{id:new Date().toISOString(), note: data.notes, time: new Date().toISOString()}]
+        notes: [{note: data.notes, time: new Date().toISOString(), author: 'agent'}] 
       };
 
       formData.append('data', JSON.stringify(cleanData));
@@ -87,7 +87,7 @@ export default function Leads() {
     }
   };
 
-  const handleUpdateLead = async (data: LeadInput, files?: File[]) => {
+  const handleUpdateLead = async (data: LeadInput) => {
     if (!editingLead) return;
     try {
       setIsLoading(true);
@@ -97,7 +97,7 @@ export default function Leads() {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
-        notes: [{id:new Date().toISOString(), note: data.notes, time: new Date().toISOString()}]
+        notes: [{note: data.notes, time: new Date().toISOString(), author: 'agent'}]
       };
 
       formData.append('data', JSON.stringify(cleanData));

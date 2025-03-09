@@ -44,7 +44,7 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
           <Select
             value={lead.status}
             onValueChange={handleStatusChange}
-            options={['NEW', 'CONTACTED', 'QUALIFIED', 'NEGOTIATION', 'FOLLOW_UP', 'LOST', 'WON'].map(status => ({
+            options={['NEW', 'CONTACTED', 'QUALIFIED', 'NEGOTIATION', 'FOLLOWUP', 'LOST', 'WON'].map(status => ({
               label: status,
               value: status,
             }))}
@@ -125,11 +125,10 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
         onRequestClose={() => setShowNotesTimeline(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
             <NotesTimeline 
               leadId={lead.id}
               notes={lead.notes.map(n => ({
-                id: n.time,
+                author: n.author,
                 note: n.note,
                 time: n.time
               }))} 
@@ -141,7 +140,6 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>
-        </View>
       </Modal>
     </Card>
   );
@@ -154,6 +152,10 @@ function getStatusColor(status: LeadStatus): string {
     case 'CONTACTED':
       return '#FFF3E0';
     case 'QUALIFIED':
+      return '#E8F5E9';
+    case 'NEGOTIATION':
+      return '#E8F5E9';
+    case 'FOLLOWUP':
       return '#E8F5E9';
     case 'LOST':
       return '#FFEBEE';
@@ -246,12 +248,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    width: '90%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   disabledButton: {
     opacity: 0.5,

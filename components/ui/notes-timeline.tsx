@@ -17,13 +17,34 @@ export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTime
   const [newNote, setNewNote] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [displayedNotes, setDisplayedNotes] = useState<NoteEntry[]>(notes);
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
     
     try {
       setIsLoading(true);
-      const updatedLead = await api.addNote(leadId, newNote.trim());
+      const newNoteEntry = {
+        note: newNote.trim(),
+        time: new Date().toISOString(),
+        author: 'agent'
+      };
+      
+      // Create a new array with existing notes and the new note
+      const updatedNotes = [...displayedNotes, newNoteEntry];
+      
+      const updatedLead = await api.addNote(leadId, { 
+        note: updatedNotes
+      });
+      
+      // Update the displayed notes with the notes from the response
+      if (updatedLead && updatedLead.notes) {
+        setDisplayedNotes(updatedLead.notes);
+      } else {
+        // If the API doesn't return updated notes, update locally
+        setDisplayedNotes(updatedNotes);
+      }
+      
       onNoteAdded(updatedLead);
       setNewNote('');
       setIsAddingNote(false);
@@ -65,6 +86,11 @@ export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTime
       hour12: true
     });
   };
+
+  // Sort notes to show latest first
+  const sortedNotes = [...displayedNotes].sort((a, b) => {
+    return new Date(b.time).getTime() - new Date(a.time).getTime();
+  });
 
   return (
     <Card style={styles.card}>
@@ -111,32 +137,34 @@ export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTime
             style={styles.addButton}
             variant="outline"
           >
-            <Ionicons name="add-circle-outline" size={20} color="#5932EA" />
             <Text style={styles.addButtonText}>Add Note</Text>
           </Button>
         )}
         
-        {notes.length === 0 ? (
+        {displayedNotes.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={48} color="#ccc" />
             <Text style={styles.emptyStateText}>No notes available</Text>
             <Text style={styles.emptyStateSubtext}>Add your first note to keep track of important information</Text>
           </View>
         ) : (
-           <ScrollView style={styles.scrollView}>
-          {notes.map((note, index) => (
-            <View key={note.id} style={styles.noteContainer}>
-              <View style={styles.timelinePoint} />
-              {index < notes.length - 1 && <View style={styles.timelineLine} />}
-              <View style={styles.noteContent}>
-                <Text style={styles.noteTimestamp}>
-                  {formatDate(note.time)}
-                </Text>
-                <Text style={styles.noteText}>{note.note}</Text>
+          <ScrollView 
+            style={styles.notesScrollView}
+            contentContainerStyle={styles.notesScrollViewContent}
+          >
+            {sortedNotes.map((note, index) => (
+              <View key={note.time} style={styles.noteContainer}>
+                <View style={styles.timelinePoint} />
+                {index < sortedNotes.length - 1 && <View style={styles.timelineLine} />}
+                <View style={styles.noteContent}>
+                  <Text style={styles.noteTimestamp}>
+                    {formatDate(note.time)} ({note.author === 'Agent' ? 'Me' : note.author})
+                  </Text>
+                  <Text style={styles.noteText}>{note.note}</Text>
+                </View>
               </View>
-            </View>
-          ))}
-        </ScrollView>
+            ))}
+          </ScrollView>
         )}
       </View>
     </Card>
@@ -146,10 +174,11 @@ export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTime
 const styles = StyleSheet.create({
   card: {
     padding: 0,
-    maxHeight: '80%',
+    maxHeight: '50%',
+    width: '90%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    overflow: 'hidden',
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -161,7 +190,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   content: {
-    padding: 0,
+    padding: 12,
+    flex: 1,
   },
   title: {
     fontSize: 18,
@@ -172,7 +202,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   addButton: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -219,8 +249,11 @@ const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: '#5932EA',
   },
-  scrollView: {
-    flexGrow: 1,
+  notesScrollView: {
+    flex: 1,
+    height: 100,
+  },
+  notesScrollViewContent: {
   },
   noteContainer: {
     flexDirection: 'row',
@@ -280,5 +313,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
+  scrollView: {
+    flexGrow: 1,
+  },
 });
-

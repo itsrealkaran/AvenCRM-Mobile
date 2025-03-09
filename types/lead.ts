@@ -1,4 +1,4 @@
-export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'NEGOTIATION' | 'FOLLOW_UP' | 'LOST' | 'WON';
+export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'NEGOTIATION' | 'FOLLOWUP' | 'LOST' | 'WON';
 export type DealRole = 'Sale' | 'Buy' | 'Rent';
 export type PropertyType = 'RESIDENTIAL' | 'COMMERCIAL';
 
@@ -9,7 +9,7 @@ export interface Agent {
 }
 
 export interface NoteEntry {
-  id: string;
+  author: string;
   note: string;
   time: string;
 }

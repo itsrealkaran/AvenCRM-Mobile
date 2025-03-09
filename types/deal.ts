@@ -3,9 +3,9 @@ export type DealRole = 'Sale' | 'Buy' | 'Rent';
 export type PropertyType = 'RESIDENTIAL' | 'LAND' | 'COMMERCIAL';
 
 export interface NoteEntry {
-  id: string;
-  content: string;
-  timestamp: string;
+  author: string;
+  note: string;
+  time: string;
 }
 
 export interface CoOwner {
