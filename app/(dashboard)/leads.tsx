@@ -221,7 +221,13 @@ export default function Leads() {
             lead={item}
             onEdit={() => setEditingLead(item)}
             onDelete={() => handleDeleteLead(item.id)}
-            onNoteAdded={() => {}}
+            onNoteAdded={(updatedLead) => {
+              setLeads(prev => 
+                prev.map(lead => 
+                  lead.id === updatedLead.id ? updatedLead : lead
+                )
+              );
+            }}
             onTransfer={() => {
               setSelectedLeadId(item.id);
               setShowTransferModal(true);

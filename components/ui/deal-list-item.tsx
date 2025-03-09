@@ -169,8 +169,8 @@ export function DealListItem({
                 author: n.author
               })) || []} 
               onNoteAdded={(updatedDeal) => {
-                if ('source' in updatedDeal) {
-                  onNoteAdded(updatedDeal as unknown as Deal);
+                if (updatedDeal) {
+                  onNoteAdded(updatedDeal as Deal);
                 }
               }}
               addNote={(id, note) => api.addDealNote(id, note)}

@@ -135,7 +135,7 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
               }))} 
               addNote={(id, note) => api.addNote(id, note)}
               onNoteAdded={(updatedLead) => {
-                if ('source' in updatedLead) {
+                if (updatedLead) {
                   onNoteAdded(updatedLead as Lead);
                 }
               }}

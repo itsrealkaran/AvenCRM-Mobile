@@ -263,7 +263,13 @@ export default function Deals() {
             onEdit={() => setEditingDeal(item)}
             onDelete={() => handleDeleteDeal(item.id)}
             onStatusChange={handleStatusChange}
-            onNoteAdded={() => {}}
+            onNoteAdded={(updatedDeal) => {
+              setDeals(prev => 
+                prev.map(deal => 
+                  deal.id === updatedDeal.id ? updatedDeal : deal
+                )
+              );
+            }}
             onViewCoOwners={() => handleViewCoOwners(item.coOwners || [])}
           />
         )}
