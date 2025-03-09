@@ -72,7 +72,7 @@ export default function Leads() {
         ...data,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
-        notes: [{note: data.notes, time: new Date().toISOString(), author: 'agent'}] 
+        notes: [{note: data.notes, time: new Date().toISOString(), author: 'Agent'}] 
       };
 
       formData.append('data', JSON.stringify(cleanData));
@@ -95,9 +95,10 @@ export default function Leads() {
       const formData = new FormData();
       const cleanData = {
         ...data,
+        id: editingLead.id,
         expectedDate: data.expectedDate ? new Date(data.expectedDate).toISOString() : undefined,
         budget: data.budget ? parseFloat(data.budget.toString()) : undefined,
-        notes: [{note: data.notes, time: new Date().toISOString(), author: 'agent'}]
+        notes: [{note: data.notes, time: new Date().toISOString(), author: 'Agent'}]
       };
 
       formData.append('data', JSON.stringify(cleanData));
