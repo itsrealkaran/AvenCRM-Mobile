@@ -45,7 +45,6 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
     propertyValue: initialData?.propertyValue || 0,
     expectedCloseDate: initialData?.expectedCloseDate || new Date().toISOString(),
     actualCloseDate: initialData?.actualCloseDate,
-    commissionRate: initialData?.commissionRate || 0,
     estimatedCommission: initialData?.estimatedCommission || 0,
     notes: initialData?.notes || [],
     coOwners: initialData?.coOwners || [],
@@ -175,12 +174,12 @@ export function DealForm({ initialData, onSubmit, onCancel, isLoading }: DealFor
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Commission Rate (%)</Text>
+            <Text style={styles.label}>Estimated Commission (%)</Text>
             <TextInput
               style={styles.input}
-              value={formData.commissionRate?.toString()}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, commissionRate: parseFloat(text) || 0 }))}
-              placeholder="Enter commission rate"
+              value={formData.estimatedCommission?.toString()}
+              onChangeText={(text) => setFormData((prev) => ({ ...prev, estimatedCommission: parseFloat(text) || 0 }))}
+              placeholder="Enter estimated commission"
               keyboardType="numeric"
             />
           </View>
