@@ -79,7 +79,7 @@ export default function Deals() {
 
   useEffect(() => {
     fetchDeals();
-  }, []);
+  }, [page]); 
 
   const fetchDeals = async (refresh = false) => {
     try {
@@ -87,6 +87,9 @@ export default function Deals() {
         setPage(1);
         setHasMore(true);
       }
+      
+      if (isLoading) return;
+      
       setIsLoading(true);
       const response = await api.getDeals({ 
         page: refresh ? 1 : page, 
@@ -99,7 +102,12 @@ export default function Deals() {
       if (refresh) {
         setDeals(newDeals);
       } else {
-        setDeals(prev => [...prev, ...newDeals]);
+        // Check for duplicates before adding new deals
+        setDeals(prev => {
+          const existingIds = new Set(prev.map(deal => deal.id));
+          const uniqueNewDeals = newDeals.filter(deal => !existingIds.has(deal.id));
+          return [...prev, ...uniqueNewDeals];
+        });
       }
       setHasMore(newDeals.length === LIMIT);
       
@@ -151,6 +159,7 @@ export default function Deals() {
         deal.id === updatedDeal.id ? updatedDeal : deal
       ));
       setEditingDeal(null);
+      setShowAddModal(false);
     } catch (error) {
       console.error('Error updating deal:', error);
     } finally {
@@ -159,8 +168,8 @@ export default function Deals() {
   };
 
   const handleDeleteDeal = async (id: string) => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       await api.deleteDeal(id);
       setDeals(prev => prev.filter(deal => deal.id !== id));
     } catch (error) {
@@ -171,29 +180,19 @@ export default function Deals() {
   };
 
   const handleStatusChange = async (id: string, status: DealStatus) => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const updatedDeal = await api.updateDealStatus(id, status);
       setDeals(prev => prev.map(deal => 
-        deal.id === updatedDeal.id ? updatedDeal : deal
+        deal.id === id ? {
+          ...deal,
+          status: status
+        } : deal
       ));
     } catch (error) {
       console.error('Error updating deal status:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleAddNote = async (dealId: string, note: string) => {
-    try {
-      const updatedDeal = await api.addDealNote(dealId, note);
-      setDeals(prev => prev.map(deal => 
-        deal.id === updatedDeal.id ? updatedDeal : deal
-      ));
-      return updatedDeal;
-    } catch (error) {
-      console.error('Error adding note:', error);
-      throw error;
     }
   };
 
@@ -212,7 +211,6 @@ export default function Deals() {
   const handleLoadMore = () => {
     if (!isLoading && hasMore) {
       setPage(prev => prev + 1);
-      fetchDeals();
     }
   };
 
@@ -243,12 +241,18 @@ export default function Deals() {
         </Button>
       </View>
 
-      <TextInput
-        style={styles.searchInput}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholder="Search deals by name, email, phone, or address..."
-      />
+      <View style={styles.searchContainer}>
+        <View style={styles.searchWrapper}>
+          <AntDesign name="search1" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search deals by name, email, phone, or address..."
+            placeholderTextColor="#666"
+          />
+        </View>
+      </View>
 
       <FlatList
         data={filteredDeals}
@@ -259,7 +263,7 @@ export default function Deals() {
             onEdit={() => setEditingDeal(item)}
             onDelete={() => handleDeleteDeal(item.id)}
             onStatusChange={handleStatusChange}
-            onNoteAdded={async () => {await fetchDeals()}}
+            onNoteAdded={() => {}}
             onViewCoOwners={() => handleViewCoOwners(item.coOwners || [])}
           />
         )}
@@ -343,14 +347,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  searchInput: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#fff',
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ddd',
+    paddingHorizontal: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#333',
   },
   list: {
     padding: 16,
@@ -429,4 +446,3 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
-

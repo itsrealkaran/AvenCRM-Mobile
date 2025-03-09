@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Select } from './select';
 import { NotesTimeline } from './notes-timeline';
 import type { Lead, LeadStatus } from '@/types/lead';
+import { api } from '@/utils/api-client';
 
 interface LeadListItemProps {
   lead: Lead;
@@ -132,6 +133,7 @@ export function LeadListItem({ lead, onEdit, onDelete, onTransfer, onStatusChang
                 note: n.note,
                 time: n.time
               }))} 
+              addNote={(id, note) => api.addNote(id, note)}
               onNoteAdded={(updatedLead) => {
                 if ('source' in updatedLead) {
                   onNoteAdded(updatedLead as Lead);

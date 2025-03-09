@@ -343,14 +343,18 @@ class ApiClient {
       console.log('[API] Update deal status response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('[API] Error updating deal status:', error);
+      if (error instanceof AxiosError && error.response?.status === 500) {
+        console.log('[API] Server error updating lead status:', error);
+        return error.response.data;
+      }
+      console.error('[API] Error updating lead status:', error);
       throw error;
     }
   }
 
-  async addDealNote(id: string, note: string): Promise<Deal> {
+  async addDealNote(id: string, note: object): Promise<Deal> {
     try {
-      const response = await this.api.post(`/deals/${id}/notes`, { note });
+      const response = await this.api.post(`/deals/${id}/notes`, note );
       console.log('[API] Add deal note response:', response.data);
       return response.data;
     } catch (error) {

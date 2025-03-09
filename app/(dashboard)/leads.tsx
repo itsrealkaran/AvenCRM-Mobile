@@ -221,7 +221,7 @@ export default function Leads() {
             lead={item}
             onEdit={() => setEditingLead(item)}
             onDelete={() => handleDeleteLead(item.id)}
-            onNoteAdded={async () => {await fetchLeads()}}
+            onNoteAdded={() => {}}
             onTransfer={() => {
               setSelectedLeadId(item.id);
               setShowTransferModal(true);

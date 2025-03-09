@@ -4,6 +4,7 @@ import { MetricCard } from '@/components/ui/metric-card';
 import { PerformanceChart } from '@/components/ui/performance-chart';
 import { useAuth } from '@/contexts/auth-context';
 import { api } from '@/utils/api-client';
+import { useCurrency } from '@/contexts/currency-context';
 
 const screenWidth = Dimensions.get('window').width;
 interface DashboardData {
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     loadDashboardData();
@@ -68,7 +70,7 @@ export default function Dashboard() {
     { 
       id: '4', 
       title: "My Revenue", 
-      value: `$${dashboardData?.revenue?.myRevenue.toLocaleString() || "0"}`, 
+      value: formatPrice(dashboardData?.revenue?.myRevenue || 0), 
       subtitle: "Total revenue generated",
       icon: 'cash-outline' as const,
       color: '#FFB547'

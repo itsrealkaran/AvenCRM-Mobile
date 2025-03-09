@@ -9,11 +9,12 @@ import type { Deal } from '@/types/deal';
 interface NotesTimelineProps {
   leadId: string;
   notes: NoteEntry[];
+  addNote: (id: string, note: object) => Promise<Lead | Deal>;
   onClose: () => void;
   onNoteAdded: (updatedLead: Lead | Deal) => void;
 }
 
-export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTimelineProps) {
+export function NotesTimeline({ leadId, notes, addNote, onClose, onNoteAdded }: NotesTimelineProps) {
   const [newNote, setNewNote] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +34,7 @@ export function NotesTimeline({ leadId, notes, onClose, onNoteAdded }: NotesTime
       // Create a new array with existing notes and the new note
       const updatedNotes = [...displayedNotes, newNoteEntry];
       
-      const updatedLead = await api.addNote(leadId, { 
+      const updatedLead = await addNote(leadId, { 
         note: updatedNotes
       });
       

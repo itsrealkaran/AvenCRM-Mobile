@@ -6,6 +6,8 @@ import { Select } from './select';
 import { NotesTimeline } from './notes-timeline';
 import type { Deal, DealStatus } from '@/types/deal';
 import { format } from 'date-fns';
+import { useCurrency } from '@/contexts/currency-context';
+import { api } from '@/utils/api-client';
 
 interface DealListItemProps {
   deal: Deal;
@@ -24,6 +26,7 @@ export function DealListItem({
   onNoteAdded,
   onViewCoOwners
 }: DealListItemProps) {
+  const { formatPrice } = useCurrency();
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showNotesTimeline, setShowNotesTimeline] = useState(false);
 
@@ -37,27 +40,31 @@ export function DealListItem({
     return format(new Date(dateString), 'MMM dd, yyyy');
   };
 
+  // Check if deal is in WON status to disable status change
+  const isWonDeal = deal.status === 'WON';
+
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.name}>{deal.name}</Text>
         <TouchableOpacity
-          onPress={() => setShowStatusDropdown(!showStatusDropdown)}
+          onPress={() => !isWonDeal && setShowStatusDropdown(!showStatusDropdown)}
           style={[
             styles.status,
             { backgroundColor: getStatusColor(deal.status) }
           ]}
+          disabled={isWonDeal}
         >
           <Text style={styles.statusText}>{deal.status}</Text>
         </TouchableOpacity>
       </View>
 
-      {showStatusDropdown && (
+      {showStatusDropdown && !isWonDeal && (
         <View style={styles.statusDropdown}>
           <Select
             value={deal.status}
             onValueChange={handleStatusChange}
-            options={['NEW', 'DISCOVERY', 'PROPOSAL', 'NEGOTIATION', 'WON'].map(status => ({
+            options={['NEW', 'DISCOVERY', 'PROPOSAL', 'NEGOTIATION', 'UNDER_CONTRACT', 'WON'].map(status => ({
               label: status,
               value: status,
             }))}
@@ -76,7 +83,7 @@ export function DealListItem({
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="cash-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>${deal.dealAmount.toLocaleString()}</Text>
+          <Text style={styles.detailText}>{formatPrice(deal.dealAmount)}</Text>
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="home-outline" size={16} color="#666" />
@@ -84,7 +91,7 @@ export function DealListItem({
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="calendar-outline" size={16} color="#666" />
-          <Text style={styles.detailText}>Expected: {deal.expectedCloseDate}</Text>
+          <Text style={styles.detailText}>Expected: {formatDate(deal.expectedCloseDate || null)}</Text>
         </View>
         {deal.actualCloseDate && (
           <View style={styles.detailItem}>
@@ -104,7 +111,7 @@ export function DealListItem({
         <Text style={styles.notesTitle}>Notes ({deal.notes?.length || 0})</Text>
         {deal.notes && deal.notes.length > 0 && (
           <Text style={styles.latestNote} numberOfLines={2}>
-            Latest: {deal.notes[deal.notes.length - 1].content}
+            Latest: {deal.notes[deal.notes.length - 1].note}
           </Text>
         )}
       </TouchableOpacity>
@@ -154,23 +161,22 @@ export function DealListItem({
         onRequestClose={() => setShowNotesTimeline(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
             <NotesTimeline 
               leadId={deal.id}
               notes={deal.notes?.map(n => ({
-                id: n.id,
-                note: n.content,
-                time: n.timestamp
+                note: n.note,
+                time: n.time,
+                author: n.author
               })) || []} 
               onNoteAdded={(updatedDeal) => {
                 if ('source' in updatedDeal) {
                   onNoteAdded(updatedDeal as unknown as Deal);
                 }
               }}
+              addNote={(id, note) => api.addDealNote(id, note)}
               onClose={() => setShowNotesTimeline(false)}
             />
           </View>
-        </View>
       </Modal>
     </Card>
   );
@@ -189,7 +195,7 @@ function getStatusColor(status: Deal['status']): string {
     case 'UNDER_CONTRACT':
       return '#E0F2F1';
     case 'WON':
-      return '#E0F2F1';
+      return '#CCFFD8';
     default:
       return '#F5F5F5';
   }
@@ -278,6 +284,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 8,
     width: '90%',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

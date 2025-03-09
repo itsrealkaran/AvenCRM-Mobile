@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { Svg, G, Text as SvgText, Line, Rect } from 'react-native-svg';
+import { useCurrency } from '@/contexts/currency-context';
 
 interface PerformanceData {
   month: string;
@@ -21,6 +22,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
   const chartHeight = 200;
   const padding = { top: 20, right: 20, bottom: 40, left: 0 };
   const graphHeight = chartHeight - padding.top - padding.bottom;
+  const { formatPrice } = useCurrency();
 
   const currentMonth = new Date().getMonth();
   const currentMonthData = data.find(item => MONTHS.indexOf(item.month) === currentMonth);
@@ -72,7 +74,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
                 }
               ]}
             >
-              ${value}
+              {formatPrice(value)}
             </Text>
           ))}
         </View>
@@ -140,8 +142,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
       {currentMonthData && (
         <View style={styles.currentMonthStats}>
           <Text style={styles.currentMonthTitle}>Current Month ({MONTHS[currentMonth]})</Text>
-          <Text style={styles.currentMonthText}>Total Income: ${currentMonthData.total}</Text>
-          <Text style={styles.currentMonthText}>Gross Income: ${currentMonthData.gross}</Text>
+          <Text style={styles.currentMonthText}>Total Income: {formatPrice(currentMonthData.total)}</Text>
+          <Text style={styles.currentMonthText}>Gross Income: {formatPrice(currentMonthData.gross)}</Text>
         </View>
       )}
     </Card>

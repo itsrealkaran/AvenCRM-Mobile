@@ -10,7 +10,6 @@ export default function Property() {
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -30,21 +29,6 @@ export default function Property() {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#5932EA" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
 
   const displayProperties = activeTab === 'all' ? allProperties : myProperties;
 
@@ -72,6 +56,16 @@ export default function Property() {
           </TouchableOpacity>
         </View>
       </View>
+      {loading && (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color="#5932EA" />
+        </View>
+      )}
+      {error && (
+        <View style={styles.centerContent}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
       <ScrollView style={styles.content}>
         {displayProperties.length === 0 ? (
           <View style={styles.emptyState}>

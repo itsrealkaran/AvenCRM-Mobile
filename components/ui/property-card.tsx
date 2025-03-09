@@ -4,13 +4,14 @@ import { Card } from './card';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Property } from '@/types/property';
 import { useAuth } from '@/contexts/auth-context';
-
+import { useCurrency } from '@/contexts/currency-context';
 interface PropertyCardProps {
   property: Property;
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
   const handleShare = async () => {
     try {
       const propertyUrl = `https://crm.avencrm.com/properties/${property.id}?agentId=${user?.id || property.createdBy.id}`;
@@ -24,10 +25,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return `$ ${price.toLocaleString()}`;
   };
 
   return (

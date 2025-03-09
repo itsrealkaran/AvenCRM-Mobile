@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+'use client';
+
+import type React from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '@/utils/api-client';
 
 type Currency = {
@@ -32,15 +35,15 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const loadCurrency = async () => {
     try {
-      const userData = await api.getCurrentUser();
-      if (userData && userData.currency) {
-        const currencyObj = currencies.find((c) => c.code === userData.currency);
-        if (currencyObj) {
-          setCurrency(currencyObj);
-        }
+      const { currency } = await api.getCurrency();
+      const currencyObj = currencies.find((c) => c.code === currency);
+      if (currencyObj) {
+        setCurrency(currencyObj);
+      } else {
+        setCurrency(currencies[0]);
       }
     } catch (error) {
-      console.error('Failed to load user currency:', error);
+      console.error('Failed to load user:', error);
     }
   };
 
