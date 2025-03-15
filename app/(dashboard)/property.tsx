@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { PropertyCard } from '@/components/ui/property-card';
 import type { Property } from '@/types/property';
 import { api } from '@/utils/api-client';
@@ -9,7 +9,9 @@ export default function Property() {
   const [myProperties, setMyProperties] = useState<Property[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('my');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -26,9 +28,15 @@ export default function Property() {
       setError('Failed to load properties');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setError(null);
+    fetchProperties();
+  }, []);
 
   const displayProperties = activeTab === 'all' ? allProperties : myProperties;
 
@@ -56,7 +64,7 @@ export default function Property() {
           </TouchableOpacity>
         </View>
       </View>
-      {loading && (
+      {loading && !refreshing && (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color="#5932EA" />
         </View>
@@ -66,7 +74,17 @@ export default function Property() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5932EA"]}
+            tintColor="#5932EA"
+          />
+        }
+      >
         {displayProperties.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
