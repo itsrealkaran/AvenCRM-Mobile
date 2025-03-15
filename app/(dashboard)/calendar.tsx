@@ -209,21 +209,9 @@ export default function Calendar() {
           
           {selectedDateEvents.length === 0 ? (
             <View>
-              <Card style={styles.emptyStateCard}>
+              <View style={styles.emptyStateCard}>
                 <Text style={styles.emptyStateText}>No events scheduled for this day</Text>
-              </Card>
-              <Button 
-                style={styles.loadEventsButton} 
-                onPress={fetchEvents}
-                disabled={isLoading}
-              >
-                <View style={styles.loadButtonContent}>
-                  <Ionicons name="refresh" size={20} color="#FFFFFF" style={styles.refreshIcon} />
-                  <Text style={styles.loadButtonText}>
-                    {isLoading ? 'Loading...' : 'Refresh Events'}
-                  </Text>
-                </View>
-              </Button>
+              </View>
             </View>
           ) : (
             <ScrollView 
@@ -388,7 +376,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
@@ -476,10 +464,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   emptyStateCard: {
-    padding: 24,
+    padding: 32,
     borderRadius: 8,
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
   },
   emptyStateText: {
     color: '#666',

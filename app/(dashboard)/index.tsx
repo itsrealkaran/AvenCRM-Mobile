@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, RefreshControl } from 'react-native';
 import { MetricCard } from '@/components/ui/metric-card';
 import { PerformanceChart } from '@/components/ui/performance-chart';
 import { useAuth } from '@/contexts/auth-context';
@@ -25,6 +25,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { formatPrice } = useCurrency();
 
   useEffect(() => {
@@ -39,8 +40,14 @@ export default function Dashboard() {
       console.error('Error loading dashboard data:', error);
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadDashboardData();
+  }, []);
 
   const metrics = [
     { 
@@ -101,7 +108,16 @@ export default function Dashboard() {
       <View style={styles.header}>
         <Text style={styles.title}>Welcome, {user?.name || 'User'}!</Text>
       </View>
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4318FF']}
+            tintColor="#4318FF"
+          />
+        }
+      >
         <View style={styles.metricsContainer}>
           {metrics.map((metric) => (
             <View key={metric.id} style={styles.metricCardWrapper}>
