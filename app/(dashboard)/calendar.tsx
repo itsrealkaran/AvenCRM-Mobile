@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, Alert, ScrollView, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Card } from '@/components/ui/card';
 import { Calendar as RNCalendar, CalendarUtils } from 'react-native-calendars';
@@ -49,6 +49,7 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [currentMonth, setCurrentMonth] = useState(CalendarUtils.getCalendarDateString(new Date()));
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch events from API
   const fetchEvents = useCallback(async () => {
@@ -73,10 +74,16 @@ export default function Calendar() {
       Alert.alert('Error', 'Failed to load calendar events');
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
     fetchEvents();
   }, [fetchEvents]);
 
@@ -149,12 +156,21 @@ export default function Calendar() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5932EA']}
+            tintColor="#5932EA"
+          />
+        }
+      >
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Calendar</Text>
             <Text style={styles.subtitle}>
-              {events.length} events scheduled
+              Found {events.length} events
             </Text>
           </View>
           <Button 
