@@ -151,10 +151,20 @@ export default function Calendar() {
       <StatusBar style="auto" />
       <ScrollView>
         <View style={styles.header}>
-          <Text style={styles.title}>Calendar</Text>
-          <Button style={styles.addEventBtn} variant='outline' size='md' onPress={() => setShowEventForm(true)}>
+          <View>
+            <Text style={styles.title}>Calendar</Text>
+            <Text style={styles.subtitle}>
+              {events.length} events scheduled
+            </Text>
+          </View>
+          <Button 
+            style={{backgroundColor: '#5932EA11'}} 
+            variant='outline' 
+            size='md' 
+            onPress={() => setShowEventForm(true)}
+          >
             <View style={styles.addButton}>
-              <MaterialIcons name="post-add" size={24} color="#5932EA" />
+              <MaterialIcons name="post-add" size={20} color="#5932EA" />
               <Text style={styles.buttonText}>Add Event</Text>
             </View> 
           </Button>
@@ -216,16 +226,42 @@ export default function Calendar() {
               </Button>
             </View>
           ) : (
-            <View style={styles.eventsContainer}>
-              <ScrollView 
-                style={styles.eventsList}
-                showsVerticalScrollIndicator={true}
-                contentContainerStyle={styles.eventsListContent}
-              >
-                {selectedDateEvents.map((event) => (
-                  <Card key={event.id} style={[styles.eventCard, { borderLeftColor: getColorForEvent(event.color || ''), borderLeftWidth: 4 }]}>
-                    <View style={styles.eventHeader}>
-                      <Text style={styles.eventTitle}>{event.title}</Text>
+            <ScrollView 
+              style={styles.eventsList}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              {selectedDateEvents.map((event) => (
+                <View key={event.id} style={styles.eventCard}>
+                  <View style={[styles.eventColorIndicator, { backgroundColor: getColorForEvent(event.color || '') }]} />
+                  
+                  <View style={styles.eventContent}>
+                    <View style={styles.eventMainInfo}>
+                      <Text style={styles.eventTitle} numberOfLines={1} ellipsizeMode="tail">{event.title}</Text>
+                      <View style={styles.eventTimeWrapper}>
+                        <Ionicons name="time-outline" size={14} color="#888" />
+                        <Text style={styles.eventTime}>
+                          {formatTime(event.start)} - {formatTime(event.end)}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    {event.description ? (
+                      <Text style={styles.eventDescription} numberOfLines={2} ellipsizeMode="tail">
+                        {event.description}
+                      </Text>
+                    ) : null}
+                    
+                    <View style={styles.eventFooter}>
+                      <View style={styles.eventSource}>
+                        <Ionicons 
+                          name={event.location === 'google' ? 'logo-google' : event.location === 'outlook' ? 'mail-outline' : 'calendar-outline'} 
+                          size={12} 
+                          color="#888" 
+                        />
+                        <Text style={styles.eventSourceText}>{event.location || 'local'}</Text>
+                      </View>
+                      
                       <View style={styles.eventActions}>
                         <Button 
                           variant="ghost" 
@@ -236,7 +272,7 @@ export default function Calendar() {
                           }}
                           style={styles.actionButton}
                         >
-                          <Ionicons name="create-outline" size={20} color="#5932EA" />
+                          <Ionicons name="create-outline" size={16} color="#5932EA" />
                         </Button>
                         <Button 
                           variant="ghost" 
@@ -244,32 +280,14 @@ export default function Calendar() {
                           onPress={() => handleDeleteEvent(event.id)}
                           style={styles.actionButton}
                         >
-                          <Ionicons name="trash-outline" size={20} color="#FF4B4B" />
+                          <Ionicons name="trash-outline" size={16} color="#FF4B4B" />
                         </Button>
                       </View>
                     </View>
-                    
-                    <View style={styles.eventTimeContainer}>
-                      <Ionicons name="time-outline" size={16} color="#666" style={styles.eventTimeIcon} />
-                      <Text style={styles.eventTime}>
-                        {formatTime(event.start)} - {formatTime(event.end)}
-                      </Text>
-                    </View>
-                    
-                    <Text style={styles.eventDescription}>{event.description}</Text>
-                    
-                    <View style={styles.eventSource}>
-                      <Ionicons 
-                        name={event.location === 'google' ? 'logo-google' : event.location === 'outlook' ? 'mail-outline' : 'calendar-outline'} 
-                        size={16} 
-                        color="#666" 
-                      />
-                      <Text style={styles.eventSourceText}>{event.location || 'local'}</Text>
-                    </View>
-                  </Card>
-                ))}
-              </ScrollView>
-            </View>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
           )}
         </View>
       </ScrollView>
@@ -319,37 +337,35 @@ export default function Calendar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FAFBFF',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
+    alignItems: 'flex-start',
+    padding: 20
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#333',
   },
-  addEventBtn: {
-    backgroundColor: '#f0eafb',
-    borderColor: '#5932EA',
-    borderWidth: 1,
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
+    gap: 8,
   },
   buttonText: {
     color: '#5932EA',
+    fontSize: 14,
     fontWeight: '500',
-    marginLeft: 6,
-    fontSize: 16,
   },
   calendarCard: {
-    margin: 16,
+    marginHorizontal: 16,
     borderRadius: 12,
     overflow: 'hidden',
     elevation: 4,
@@ -367,6 +383,7 @@ const styles = StyleSheet.create({
   eventsSection: {
     marginHorizontal: 16,
     marginTop: 8,
+    marginBottom: 24,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
@@ -382,82 +399,81 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 12,
   },
-  eventsContainer: {
-    maxHeight: 300,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
   eventsList: {
+    maxHeight: 240,
     width: '100%',
   },
-  eventsListContent: {
-    paddingVertical: 8,
-  },
   eventCard: {
-    padding: 16,
+    flexDirection: 'row',
     marginBottom: 12,
-    borderRadius: 8,
     backgroundColor: '#ffffff',
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    overflow: 'hidden',
   },
-  eventHeader: {
+  eventColorIndicator: {
+    width: 6,
+    height: '100%',
+  },
+  eventContent: {
+    flex: 1,
+    padding: 12,
+  },
+  eventMainInfo: {
+    marginBottom: 6,
+  },
+  eventTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  eventTimeWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventTime: {
+    fontSize: 13,
+    color: '#666',
+    marginLeft: 4,
+  },
+  eventDescription: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  eventFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginTop: 4,
   },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
+  eventSource: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+  },
+  eventSourceText: {
+    fontSize: 11,
+    color: '#777',
+    marginLeft: 3,
+    textTransform: 'capitalize',
   },
   eventActions: {
     flexDirection: 'row',
   },
   actionButton: {
     marginLeft: 4,
-    borderRadius: 20,
-  },
-  eventTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    backgroundColor: '#f8f9fa',
-    padding: 6,
-    borderRadius: 6,
-  },
-  eventTimeIcon: {
-    marginRight: 4,
-  },
-  eventTime: {
-    fontSize: 14,
-    color: '#666',
-  },
-  eventDescription: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  eventSource: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  eventSourceText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-    textTransform: 'capitalize',
+    padding: 4,
+    borderRadius: 16,
   },
   emptyStateCard: {
     padding: 24,

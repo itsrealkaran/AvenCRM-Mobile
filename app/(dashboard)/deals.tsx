@@ -244,13 +244,11 @@ export default function Deals() {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchWrapper}>
-          <AntDesign name="search1" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search deals by name, email, phone, or address..."
-            placeholderTextColor="#666"
           />
         </View>
       </View>
