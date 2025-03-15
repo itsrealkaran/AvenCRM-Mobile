@@ -467,6 +467,66 @@ class ApiClient {
       throw error;
     }
   }
+
+  // Calendar endpoints
+  async getCalendarEvents(): Promise<any[]> {
+    try {
+      const response = await this.api.get('calender/getEvents');
+      console.log('[API] Get calendar events response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching calendar events:', error);
+      throw error;
+    }
+  }
+
+  async createCalendarEvent(eventData: { 
+    title: string; 
+    description: string; 
+    start: string | Date; 
+    end: string | Date; 
+    color: string;
+  }): Promise<any> {
+    try {
+      const response = await this.api.post('/calender/createEvent', eventData);
+      console.log('[API] Create calendar event response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error creating calendar event:', error);
+      throw error;
+    }
+  }
+
+  async updateCalendarEvent(
+    eventId: string, 
+    eventData: { 
+      title: string; 
+      description: string; 
+      start: string | Date; 
+      end: string | Date; 
+      color: string;
+    }
+  ): Promise<any> {
+    try {
+      const response = await this.api.put(`/calender/update/${eventId}`, eventData);
+      console.log('[API] Update calendar event response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating calendar event:', error);
+      throw error;
+    }
+  }
+
+  async deleteCalendarEvent(eventId: string): Promise<any> {
+    try {
+      const response = await this.api.delete(`/calender/delete/${eventId}`);
+      console.log('[API] Delete calendar event response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error deleting calendar event:', error);
+      throw error;
+    }
+  }
 }
 
 

@@ -5,6 +5,7 @@ export interface Event {
     end: string;
     description?: string;
     color?: string;
+    location?: string;
   }
   
   

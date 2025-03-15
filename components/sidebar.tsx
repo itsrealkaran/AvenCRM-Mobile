@@ -18,7 +18,7 @@ const MENU_ITEMS: MenuItem[] = [
   // { name: 'Page Builder', icon: 'construct-outline' },
   { name: 'Leads', icon: 'people-outline' },
   { name: 'Deals', icon: 'briefcase-outline' },
-  { name: 'Transaction', icon: 'card-outline' },
+  { name: 'Transactions', icon: 'card-outline' },
   // { name: 'Monitoring', icon: 'analytics-outline' },
   { name: 'Calendar', icon: 'calendar-outline' },
 ];

@@ -4,104 +4,147 @@ import { StatusBar } from 'expo-status-bar';
 import { Card } from '@/components/ui/card';
 import { Calendar as RNCalendar, CalendarUtils } from 'react-native-calendars';
 import { EventForm } from '@/components/ui/event-form';
-import { DayView } from '@/components/ui/day-view';
 import { Button } from '@/components/ui/button';
-import { AntDesign, Ionicons, MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
-import { syncGoogleCalendar, syncOutlookCalendar } from '@/utils/calendar-sync';
+import { Ionicons, MaterialIcons} from '@expo/vector-icons';
+import { api } from '@/utils/api-client';
+import { Event } from '@/types/event';
 
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  startTime: string;
-  endTime: string;
-  color: string;
-  source: 'local' | 'google' | 'outlook';
-}
-
-const EVENT_COLORS = ['#5932EA', '#FF6B6B', '#4CAF50', '#FFA000', '#2196F3'];
+export const eventColors = [
+  {
+    id: 'blue',
+    name: 'Blue',
+    backgroundColor: '#3182ce',
+    textColor: 'white',
+  },
+  {
+    id: 'green',
+    name: 'Green',
+    backgroundColor: '#34A853',
+    textColor: 'white',
+  },
+  {
+    id: 'red',
+    name: 'Red',
+    backgroundColor: '#E53E3E',
+    textColor: 'white',
+  },
+  {
+    id: 'purple',
+    name: 'Purple',
+    backgroundColor: '#805AD5',
+    textColor: 'white',
+  },
+  {
+    id: 'orange',
+    name: 'Orange',
+    backgroundColor: '#ED8936',
+    textColor: 'white',
+  },
+];
 
 export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(CalendarUtils.getCalendarDateString(new Date()));
   const [events, setEvents] = useState<Event[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
-  const [showDayView, setShowDayView] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [currentMonth, setCurrentMonth] = useState(CalendarUtils.getCalendarDateString(new Date()));
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch events from API
+  const fetchEvents = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const apiEvents = await api.getCalendarEvents();
+      
+      // Transform API events to our Event format
+      const formattedEvents = apiEvents.map((event: any) => ({
+        id: event.id || String(Date.now()),
+        title: event.title,
+        description: event.description || '',
+        start: event.start,
+        end: event.end,
+        color: event.color || eventColors[Math.floor(Math.random() * eventColors.length)].id,
+        source: event.source || 'local',
+      }));
+      
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      Alert.alert('Error', 'Failed to load calendar events');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Load events from local storage or API
-    // This is a placeholder for actual data loading
-    setEvents([]);
-  }, []);
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleDayPress = useCallback((day: { dateString: string }) => {
     setSelectedDate(day.dateString);
-    setShowDayView(true);
   }, []);
 
-  const handleAddEvent = useCallback((event: Omit<Event, 'id' | 'color' | 'source'>) => {
-    const newEvent: Event = {
-      ...event,
-      id: Date.now().toString(),
-      color: EVENT_COLORS[Math.floor(Math.random() * EVENT_COLORS.length)],
-      source: 'local',
-    };
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
-    setShowEventForm(false);
-  }, []);
-
-  const handleEditEvent = useCallback((updatedEvent: Event) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) => (event.id === updatedEvent.id ? updatedEvent : event))
-    );
-    setShowEventForm(false);
-    setEditingEvent(null);
-  }, []);
-
-  const handleDeleteEvent = useCallback((eventId: string) => {
-    setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+  const handleDeleteEvent = useCallback(async (eventId: string) => {
+    try {
+      setIsLoading(true);
+      await api.deleteCalendarEvent(eventId);
+      
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      Alert.alert('Error', 'Failed to delete event');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleMonthChange = (month: string) => {
     setCurrentMonth(month);
   };
 
-  const handleSyncCalendar = async (source: 'google' | 'outlook') => {
-    try {
-      let newEvents: Event[];
-      if (source === 'google') {
-        newEvents = await syncGoogleCalendar();
-      } else {
-        newEvents = await syncOutlookCalendar();
-      }
-      setEvents((prevEvents) => [...prevEvents, ...newEvents]);
-      Alert.alert('Success', `Calendar synced with ${source} successfully!`);
-    } catch (error) {
-      console.error('Error syncing calendar:', error);
-      Alert.alert('Error', `Failed to sync with ${source} calendar. Please try again.`);
-    }
+  const getColorForEvent = (colorId: string) => {
+    const color = eventColors.find(c => c.id === colorId);
+    return color ? color.backgroundColor : '#3182ce'; // Default to blue if not found
   };
 
   const markedDates = events.reduce((acc, event) => {
-    const start = new Date(event.startDate);
-    const end = new Date(event.endDate);
-    for (let date = start; date <= end; date.setDate(date.getDate() + 1)) {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const eventColor = getColorForEvent(event.color || '');
+    
+    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
       const dateString = CalendarUtils.getCalendarDateString(date);
       if (!acc[dateString]) {
         acc[dateString] = { dots: [], periods: [] };
       }
-      acc[dateString].dots.push({ color: event.color });
+      acc[dateString].dots.push({ color: eventColor });
       acc[dateString].periods.push({
         startingDay: date.getTime() === start.getTime(),
         endingDay: date.getTime() === end.getTime(),
-        color: event.color,
+        color: eventColor,
       });
     }
     return acc;
   }, {} as { [key: string]: { dots: { color: string }[]; periods: { startingDay: boolean; endingDay: boolean; color: string }[] } });
+
+  const selectedDateEvents = events.filter((event) => {
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
+    const selected = new Date(selectedDate);
+    
+    // Reset hours to compare dates only
+    eventStart.setHours(0, 0, 0, 0);
+    eventEnd.setHours(0, 0, 0, 0);
+    selected.setHours(0, 0, 0, 0);
+    
+    return eventStart <= selected && eventEnd >= selected;
+  });
+
+  // Format time to display in 12-hour format with AM/PM
+  const formatTime = (dateTimeStr: string) => {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <View style={styles.container}>
@@ -109,19 +152,19 @@ export default function Calendar() {
       <ScrollView>
         <View style={styles.header}>
           <Text style={styles.title}>Calendar</Text>
-          <Button style={{backgroundColor: '#5932EA11'}} variant='outline' size='md' onPress={() => setShowEventForm(true)}>
-          <View style={styles.addButton}>
-            <MaterialIcons name="post-add" size={24} color="#5932EA" />
-            <Text style={styles.buttonText}>Add Event</Text>
-          </View> 
-        </Button>
+          <Button style={styles.addEventBtn} variant='outline' size='md' onPress={() => setShowEventForm(true)}>
+            <View style={styles.addButton}>
+              <MaterialIcons name="post-add" size={24} color="#5932EA" />
+              <Text style={styles.buttonText}>Add Event</Text>
+            </View> 
+          </Button>
         </View>
         <Card style={styles.calendarCard}>
           <RNCalendar
             onDayPress={handleDayPress}
             markedDates={markedDates}
             markingType="multi-period"
-            onMonthChange={(month) => handleMonthChange(month.dateString)}
+            onMonthChange={(month: { dateString: string }) => handleMonthChange(month.dateString)}
             enableSwipeMonths={true}
             theme={{
               backgroundColor: '#ffffff',
@@ -148,52 +191,124 @@ export default function Calendar() {
             }}
           />
         </Card>
-        <View style={styles.syncButtonsContainer}>
-          <Button onPress={() => handleSyncCalendar('google')} style={{backgroundColor: '#5932EA22'}} variant='outline'>
-            <View style={styles.syncButton}>
-              <Ionicons name="logo-google" size={24} color="#5932EA" />
-              <Text style={styles.buttonText}>Sync Google Calendar</Text>
+        
+        <View style={styles.eventsSection}>
+          <Text style={styles.sectionTitle}>
+            Events for {new Date(selectedDate).toDateString()}
+          </Text>
+          
+          {selectedDateEvents.length === 0 ? (
+            <View>
+              <Card style={styles.emptyStateCard}>
+                <Text style={styles.emptyStateText}>No events scheduled for this day</Text>
+              </Card>
+              <Button 
+                style={styles.loadEventsButton} 
+                onPress={fetchEvents}
+                disabled={isLoading}
+              >
+                <View style={styles.loadButtonContent}>
+                  <Ionicons name="refresh" size={20} color="#FFFFFF" style={styles.refreshIcon} />
+                  <Text style={styles.loadButtonText}>
+                    {isLoading ? 'Loading...' : 'Refresh Events'}
+                  </Text>
+                </View>
+              </Button>
             </View>
-            
-          </Button>
-          <Button onPress={() => handleSyncCalendar('outlook')} style={{backgroundColor: '#5932EA22'}} variant='outline'>
-            <View style={styles.syncButton}>
-              <MaterialCommunityIcons name="microsoft-outlook" size={24} color="#5932EA" />
-              <Text style={styles.buttonText}>Sync Outlook Calendar</Text>
+          ) : (
+            <View style={styles.eventsContainer}>
+              <ScrollView 
+                style={styles.eventsList}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.eventsListContent}
+              >
+                {selectedDateEvents.map((event) => (
+                  <Card key={event.id} style={[styles.eventCard, { borderLeftColor: getColorForEvent(event.color || ''), borderLeftWidth: 4 }]}>
+                    <View style={styles.eventHeader}>
+                      <Text style={styles.eventTitle}>{event.title}</Text>
+                      <View style={styles.eventActions}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onPress={() => {
+                            setEditingEvent(event);
+                            setShowEventForm(true);
+                          }}
+                          style={styles.actionButton}
+                        >
+                          <Ionicons name="create-outline" size={20} color="#5932EA" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onPress={() => handleDeleteEvent(event.id)}
+                          style={styles.actionButton}
+                        >
+                          <Ionicons name="trash-outline" size={20} color="#FF4B4B" />
+                        </Button>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.eventTimeContainer}>
+                      <Ionicons name="time-outline" size={16} color="#666" style={styles.eventTimeIcon} />
+                      <Text style={styles.eventTime}>
+                        {formatTime(event.start)} - {formatTime(event.end)}
+                      </Text>
+                    </View>
+                    
+                    <Text style={styles.eventDescription}>{event.description}</Text>
+                    
+                    <View style={styles.eventSource}>
+                      <Ionicons 
+                        name={event.location === 'google' ? 'logo-google' : event.location === 'outlook' ? 'mail-outline' : 'calendar-outline'} 
+                        size={16} 
+                        color="#666" 
+                      />
+                      <Text style={styles.eventSourceText}>{event.location || 'local'}</Text>
+                    </View>
+                  </Card>
+                ))}
+              </ScrollView>
             </View>
-          </Button>
+          )}
         </View>
       </ScrollView>
 
       <Modal visible={showEventForm} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <EventForm
-            onSubmit={editingEvent ? handleEditEvent : handleAddEvent}
+            onSubmit={async (eventData) => {
+              try {
+                setIsLoading(true);
+                const apiEventData = {
+                  title: eventData.title,
+                  description: eventData.description || '',
+                  start: new Date(eventData.start).toISOString(),
+                  end: new Date(eventData.end).toISOString(),
+                  color: editingEvent?.color || eventColors[Math.floor(Math.random() * eventColors.length)].id
+                };
+                
+                if (editingEvent) {
+                  await api.updateCalendarEvent(editingEvent.id, apiEventData);
+                } else {
+                  await api.createCalendarEvent(apiEventData);
+                }
+                setShowEventForm(false);
+                setEditingEvent(null);
+                fetchEvents(); // Refresh events after adding/editing
+              } catch (error) {
+                console.error('Error saving event:', error);
+                Alert.alert('Error', 'Failed to save event');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
             onCancel={() => {
               setShowEventForm(false);
               setEditingEvent(null);
             }}
             initialDate={selectedDate}
             editingEvent={editingEvent}
-          />
-        </View>
-      </Modal>
-
-      <Modal visible={showDayView} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <DayView
-            date={selectedDate}
-            events={events.filter((event) => 
-              new Date(event.startDate) <= new Date(selectedDate) && 
-              new Date(event.endDate) >= new Date(selectedDate)
-            )}
-            onClose={() => setShowDayView(false)}
-            onEditEvent={(event) => {
-              setEditingEvent(event);
-              setShowEventForm(true);
-              setShowDayView(false);
-            }}
-            onDeleteEvent={handleDeleteEvent}
           />
         </View>
       </Modal>
@@ -204,7 +319,7 @@ export default function Calendar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -216,6 +331,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333333',
+  },
+  addEventBtn: {
+    backgroundColor: '#f0eafb',
+    borderColor: '#5932EA',
+    borderWidth: 1,
   },
   addButton: {
     flexDirection: 'row',
@@ -232,21 +352,11 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 12,
     overflow: 'hidden',
-  },
-  syncButtonsContainer: {
-    gap: 12,
-    justifyContent: 'space-between',
-    marginHorizontal: 20,
-    marginVertical: 16,
-  },
-  syncButton: {
-    flex: 1, 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginHorizontal: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   modalContainer: {
     flex: 1,
@@ -254,5 +364,175 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  eventsSection: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  eventsContainer: {
+    maxHeight: 300,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  eventsList: {
+    width: '100%',
+  },
+  eventsListContent: {
+    paddingVertical: 8,
+  },
+  eventCard: {
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  eventActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    marginLeft: 4,
+    borderRadius: 20,
+  },
+  eventTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    backgroundColor: '#f8f9fa',
+    padding: 6,
+    borderRadius: 6,
+  },
+  eventTimeIcon: {
+    marginRight: 4,
+  },
+  eventTime: {
+    fontSize: 14,
+    color: '#666',
+  },
+  eventDescription: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  eventSource: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  eventSourceText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+    textTransform: 'capitalize',
+  },
+  emptyStateCard: {
+    padding: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  emptyStateText: {
+    color: '#666',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  loadEventsButton: {
+    backgroundColor: '#5932EA',
+    marginTop: 12,
+    borderRadius: 8,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+  },
+  loadButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refreshIcon: {
+    marginRight: 8,
+  },
+  loadButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+    fontSize: 16,
+  },
+  addEventButton: {
+    backgroundColor: '#5932EA',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  syncSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  syncButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  syncButton: {
+    flex: 1,
+    marginRight: 8,
+    backgroundColor: '#4285F4',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  outlookButton: {
+    backgroundColor: '#0078D4',
+    marginRight: 0,
+    marginLeft: 8,
+  },
+  syncIcon: {
+    marginRight: 8,
+  },
+  syncButtonText: {
+    color: '#ffffff',
+    fontWeight: '500',
+  },
 });
-

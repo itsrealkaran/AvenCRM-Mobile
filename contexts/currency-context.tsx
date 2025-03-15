@@ -37,6 +37,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     try {
       const { currency } = await api.getCurrency();
       const currencyObj = currencies.find((c) => c.code === currency);
+      console.log('currencyObj', currencyObj);
       if (currencyObj) {
         setCurrency(currencyObj);
       } else {
