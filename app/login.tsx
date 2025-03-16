@@ -180,7 +180,9 @@ export default function Login() {
 
           <TouchableOpacity
             style={styles.forgotPassword}
-            onPress={() => router.push("/")}
+            onPress={() =>
+              router.push("https://crm.avencrm.com/forgot-password")
+            }
             disabled={isLoading}
           >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>

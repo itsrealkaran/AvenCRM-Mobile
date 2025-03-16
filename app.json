@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.apectory.AvenCRM"
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +44,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9bef9e98-a554-4de8-aba2-ac9fffcd037a"
+      }
     }
   }
 }
