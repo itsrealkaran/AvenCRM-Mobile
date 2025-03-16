@@ -23,15 +23,13 @@ import { api } from "@/utils/api-client";
 export default function Settings() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState(user?.name || "Team");
-  const [email, setEmail] = useState(user?.email || "team@avencrm.com");
-  const [phone, setPhone] = useState("1234567890");
+  const [name, setName] = useState(user?.name || "User");
+  const [email, setEmail] = useState(user?.email || "user@avencrm.com");
+  const [role, setRole] = useState(user?.role || "User");
+  const [phone, setPhone] = useState("+1234567890");
   const [gender, setGender] = useState("Male");
-  const [dateOfBirth, setDateOfBirth] = useState("February 3rd, 2025");
-  const [designation, setDesignation] = useState("Team Manager");
-  const [darkMode, setDarkMode] = useState(false);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [dateOfBirth, setDateOfBirth] = useState("January 6th, 2004");
+  const [designation, setDesignation] = useState("Product Manager");
 
   // Modal states
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
@@ -67,6 +65,7 @@ export default function Settings() {
       if (profileData) {
         setName(profileData.name || user?.name || "");
         setEmail(profileData.email || user?.email || "");
+        setRole(profileData.role || "");
         setPhone(profileData.phone || "");
         setGender(profileData.gender || "");
         setDateOfBirth(profileData.dob || "");
@@ -177,7 +176,12 @@ export default function Settings() {
           <Text style={styles.profileName}>{name}</Text>
           <Text style={styles.profileEmail}>{email}</Text>
           <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>Team Leader</Text>
+            <Text style={styles.roleText}>
+              {role
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")}
+            </Text>
           </View>
         </View>
 
