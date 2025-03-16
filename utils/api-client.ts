@@ -527,6 +527,61 @@ class ApiClient {
       throw error;
     }
   }
+
+  // Profile management endpoints
+  async getProfile(): Promise<any> {
+    try {
+      const response = await this.api.get('/user/profile');
+      console.log('[API] Get profile response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error fetching profile:', error);
+      throw error;
+    }
+  }
+
+  async updateProfile(data: any): Promise<any> {
+    try {
+      // Format date if present
+      const formattedData = {
+        ...data,
+        dob: data.dob ? new Date(data.dob).toISOString() : undefined,
+      };
+
+      const response = await this.api.put('/user/profile', formattedData);
+      console.log('[API] Update profile response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error updating profile:', error);
+      throw error;
+    }
+  }
+
+  async changePassword(data: any): Promise<{ message: string }> {
+    try {
+      const response = await this.api.put('/user/password', data);
+      console.log('[API] Change password response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error changing password:', error);
+      throw error;
+    }
+  }
+
+  async uploadAvatar(file: FormData): Promise<{ imageUrl: string }> {
+    try {
+      const response = await this.api.post('/user/avatar', file, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('[API] Upload avatar response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[API] Error uploading avatar:', error);
+      throw error;
+    }
+  }
 }
 
 

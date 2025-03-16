@@ -26,6 +26,7 @@ type CurrencyContextType = {
   setCurrency: (currency: Currency) => void;
   formatPrice: (price: number | null | undefined) => string;
   currencies: Currency[];
+  loadCurrency: () => Promise<void>;
 };
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -63,7 +64,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatPrice, currencies }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatPrice, currencies, loadCurrency }}>
       {children}
     </CurrencyContext.Provider>
   );
