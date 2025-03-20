@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 interface SelectOption {
@@ -20,13 +26,43 @@ export function Select({
   options,
   placeholder,
 }: SelectProps) {
+  // Find the selected option label
+  const selectedLabel =
+    options.find((option) => option.value === value)?.label ||
+    placeholder ||
+    "";
+
+  if (Platform.OS === "ios") {
+    return (
+      <View style={styles.container}>
+        <Picker
+          selectedValue={value}
+          onValueChange={onValueChange}
+          style={styles.iosPicker}
+          itemStyle={styles.iosPickerItem}
+        >
+          {placeholder && <Picker.Item label={placeholder} value="" />}
+          {options.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+              color="#000"
+            />
+          ))}
+        </Picker>
+      </View>
+    );
+  }
+
+  // Android version
   return (
     <View style={styles.container}>
       <Picker
         selectedValue={value}
         onValueChange={onValueChange}
-        style={[styles.picker, Platform.OS === "ios" ? styles.iosPicker : {}]}
-        itemStyle={Platform.OS === "ios" ? styles.iosPickerItem : {}}
+        style={styles.picker}
+        dropdownIconColor="#000"
       >
         {placeholder && <Picker.Item label={placeholder} value="" />}
         {options.map((option) => (
@@ -54,12 +90,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   iosPicker: {
-    height: 150,
-    marginTop: -50,
-    marginBottom: -50,
+    width: "100%",
+    height: 200,
+    backgroundColor: "#fff",
   },
   iosPickerItem: {
     fontSize: 16,
-    height: 50,
+    height: 120,
+    color: "#000",
   },
 });
