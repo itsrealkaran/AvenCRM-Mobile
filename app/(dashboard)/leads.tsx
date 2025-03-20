@@ -47,7 +47,6 @@ export default function Leads() {
       if (refresh) {
         setLeads(newLeads);
       } else {
-        // Check for duplicates before adding new leads
         setLeads(prev => {
           const existingIds = new Set(prev.map(lead => lead.id));
           const uniqueNewLeads = newLeads.filter(lead => !existingIds.has(lead.id));

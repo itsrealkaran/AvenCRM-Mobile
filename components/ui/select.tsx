@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React from "react";
+import { View, Text, StyleSheet, Platform } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
 interface SelectOption {
   label: string;
@@ -14,17 +14,21 @@ interface SelectProps {
   placeholder?: string;
 }
 
-export function Select({ value, onValueChange, options, placeholder }: SelectProps) {
+export function Select({
+  value,
+  onValueChange,
+  options,
+  placeholder,
+}: SelectProps) {
   return (
     <View style={styles.container}>
       <Picker
         selectedValue={value}
         onValueChange={onValueChange}
-        style={styles.picker}
+        style={[styles.picker, Platform.OS === "ios" ? styles.iosPicker : {}]}
+        itemStyle={Platform.OS === "ios" ? styles.iosPickerItem : {}}
       >
-        {placeholder && (
-          <Picker.Item label={placeholder} value="" />
-        )}
+        {placeholder && <Picker.Item label={placeholder} value="" />}
         {options.map((option) => (
           <Picker.Item
             key={option.value}
@@ -40,12 +44,22 @@ export function Select({ value, onValueChange, options, placeholder }: SelectPro
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
+    overflow: "hidden",
   },
   picker: {
     height: 50,
+    width: "100%",
+  },
+  iosPicker: {
+    height: 150,
+    marginTop: -50,
+    marginBottom: -50,
+  },
+  iosPickerItem: {
+    fontSize: 16,
+    height: 50,
   },
 });
-
