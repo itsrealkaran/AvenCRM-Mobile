@@ -1,6 +1,7 @@
+import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { View, StyleSheet, Platform } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
 
 interface CountryCodeDropdownProps {
   value: string;
@@ -8,14 +9,13 @@ interface CountryCodeDropdownProps {
 }
 
 const countryCodes = [
-  { label: "+1", value: "+1" },
-  { label: "+44", value: "+44" },
-  { label: "+61", value: "+61" },
-  { label: "+49", value: "+49" },
-  { label: "+33", value: "+33" },
-  { label: "+91", value: "+91" },
-  { label: "+971", value: "+971" },
-  // Add more country codes as needed
+  { label: "+1", value: "+1", color: "#000" },
+  { label: "+44", value: "+44", color: "#000" },
+  { label: "+61", value: "+61", color: "#000" },
+  { label: "+49", value: "+49", color: "#000" },
+  { label: "+33", value: "+33", color: "#000" },
+  { label: "+91", value: "+91", color: "#000" },
+  { label: "+971", value: "+971", color: "#000" },
 ];
 
 export function CountryCodeDropdown({
@@ -24,19 +24,23 @@ export function CountryCodeDropdown({
 }: CountryCodeDropdownProps) {
   return (
     <View style={styles.container}>
-      <Picker
-        selectedValue={value}
+      <RNPickerSelect
+        value={value}
+        placeholder={{}}
         onValueChange={onValueChange}
-        style={styles.picker}
-      >
-        {countryCodes.map((country) => (
-          <Picker.Item
-            key={country.value}
-            label={country.label}
-            value={country.value}
-          />
-        ))}
-      </Picker>
+        items={countryCodes}
+        style={{
+          inputIOS: styles.input,
+          inputAndroid: styles.input,
+        }}
+        Icon={() =>
+          Platform.OS === "ios" ? (
+            <View style={styles.iconContainer}>
+              <Feather name="chevron-down" size={24} color="#707070" />
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 }
@@ -47,9 +51,16 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 8,
     backgroundColor: "#fff",
-    width: 110,
+    width: 120,
   },
-  picker: {
+  input: {
     height: 50,
+    paddingHorizontal: 10,
+    paddingRight: 30,
+  },
+  iconContainer: {
+    position: "relative",
+    right: 10,
+    top: "50%",
   },
 });

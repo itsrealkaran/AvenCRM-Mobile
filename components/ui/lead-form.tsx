@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
-import { Button } from './button';
-import { Card } from './card';
-import { Select } from './select';
-import { CountryCodeDropdown } from './country-code-dropdown';
-import type { Lead, LeadStatus, PropertyType, LeadInput } from '@/types/lead';
+import React, { useState } from "react";
+import { View, Text, TextInput, StyleSheet, ScrollView } from "react-native";
+import { Button } from "./button";
+import { Card } from "./card";
+import { Select } from "./select";
+import { CountryCodeDropdown } from "./country-code-dropdown";
+import type { Lead, LeadStatus, PropertyType, LeadInput } from "@/types/lead";
 
 interface LeadFormProps {
   initialData?: Partial<Lead>;
@@ -13,31 +13,44 @@ interface LeadFormProps {
   isLoading?: boolean;
 }
 
-const STATUS_OPTIONS: LeadStatus[] = ['NEW', 'CONTACTED', 'QUALIFIED', 'LOST', 'WON'];
-const PROPERTY_TYPE_OPTIONS: PropertyType[] = ['RESIDENTIAL', 'COMMERCIAL'];
+const STATUS_OPTIONS: LeadStatus[] = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "LOST",
+  "WON",
+];
+const PROPERTY_TYPE_OPTIONS: PropertyType[] = ["RESIDENTIAL", "COMMERCIAL"];
 
-export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFormProps) {
-  const splitPhoneNumber = (phone: string = '') => {
+export function LeadForm({
+  initialData,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: LeadFormProps) {
+  const splitPhoneNumber = (phone: string = "") => {
     const match = phone.match(/^(\+\d{1,4})?(.*)$/);
     return {
-      countryCode: match?.[1] || '+1', // Default to +1 if no country code
-      number: match?.[2]?.trim() || ''
+      countryCode: match?.[1] || "+1", // Default to +1 if no country code
+      number: match?.[2]?.trim() || "",
     };
   };
 
   const initialPhone = splitPhoneNumber(initialData?.phone);
-  const [formData, setFormData] = useState<LeadInput & {countryCode: string}>({
-    name: initialData?.name || '',
-    email: initialData?.email || '',
-    phone: initialPhone.number,
-    countryCode: initialPhone.countryCode,
-    location: initialData?.location || '',
-    budget: initialData?.budget || null,
-    propertyType: initialData?.propertyType || 'RESIDENTIAL',
-    source: initialData?.source || 'MANUAL',
-    notes: initialData?.notes?.[0]?.note || '',
-    expectedDate: initialData?.expectedDate || undefined,
-  });
+  const [formData, setFormData] = useState<LeadInput & { countryCode: string }>(
+    {
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      phone: initialPhone.number,
+      countryCode: initialPhone.countryCode,
+      location: initialData?.location || "",
+      budget: initialData?.budget || null,
+      propertyType: initialData?.propertyType || "RESIDENTIAL",
+      source: initialData?.source || "MANUAL",
+      notes: initialData?.notes?.[0]?.note || "",
+      expectedDate: initialData?.expectedDate || undefined,
+    }
+  );
 
   const handleSubmit = () => {
     const submissionData = {
@@ -58,7 +71,9 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <TextInput
               style={styles.input}
               value={formData.name}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, name: text }))
+              }
               placeholder="Enter name"
             />
           </View>
@@ -68,7 +83,9 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <TextInput
               style={styles.input}
               value={formData.email}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, email: text }))}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, email: text }))
+              }
               placeholder="Enter email"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -80,12 +97,16 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <View style={styles.phoneContainer}>
               <CountryCodeDropdown
                 value={formData.countryCode}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, countryCode: value }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, countryCode: value }))
+                }
               />
               <TextInput
                 style={[styles.input, styles.phoneInput]}
                 value={formData.phone}
-                onChangeText={(text) => setFormData((prev) => ({ ...prev, phone: text }))}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, phone: text }))
+                }
                 placeholder="Enter phone number"
                 keyboardType="phone-pad"
               />
@@ -96,8 +117,11 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <Text style={styles.label}>Property Type *</Text>
             <Select
               value={formData.propertyType}
-              onValueChange={(value) => 
-                setFormData((prev) => ({ ...prev, propertyType: value as PropertyType }))
+              onValueChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  propertyType: value as PropertyType,
+                }))
               }
               options={PROPERTY_TYPE_OPTIONS.map((type) => ({
                 label: type,
@@ -110,8 +134,10 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <Text style={styles.label}>Location</Text>
             <TextInput
               style={styles.input}
-              value={formData.location || ''}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, location: text }))}
+              value={formData.location || ""}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, location: text }))
+              }
               placeholder="Enter location"
             />
           </View>
@@ -120,7 +146,7 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <Text style={styles.label}>Budget</Text>
             <TextInput
               style={styles.input}
-              value={formData.budget?.toString() || ''}
+              value={formData.budget?.toString() || ""}
               onChangeText={(text) => {
                 const budget = text ? Number(text) : undefined;
                 setFormData((prev) => ({ ...prev, budget }));
@@ -134,8 +160,10 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
             <Text style={styles.label}>Notes</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              value={formData.notes || ''}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
+              value={formData.notes || ""}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, notes: text }))
+              }
               placeholder="Enter notes"
               multiline
               numberOfLines={4}
@@ -144,19 +172,15 @@ export function LeadForm({ initialData, onSubmit, onCancel, isLoading }: LeadFor
         </ScrollView>
 
         <View style={styles.actions}>
-          <Button 
-            variant="outline" 
-            onPress={onCancel}
-            style={styles.button}
-          >
+          <Button variant="outline" onPress={onCancel} style={styles.button}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onPress={handleSubmit}
             isLoading={isLoading}
             style={styles.button}
           >
-            {initialData ? 'Update' : 'Create'} Lead
+            {initialData ? "Update" : "Create"} Lead
           </Button>
         </View>
       </View>
@@ -169,8 +193,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   container: {
-    height: '100%',
-    flexDirection: 'column',
+    height: "100%",
+    flexDirection: "column",
   },
   scrollView: {
     flex: 1,
@@ -180,37 +204,37 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
-    color: '#333',
+    color: "#333",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   textArea: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 8,
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: "#ddd",
   },
   button: {
     minWidth: 100,
   },
   phoneContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   phoneInput: {
     flex: 1,
